@@ -62,4 +62,8 @@ const levels = [
   { id: 50, mapType: 'hybrid', combatWaves: 10, supplyDropAfterWave: null, boss: 'final_boss', unlocks: [] },
 ];
 
+export function getUnlocksForLevel(level) {
+  return (levels[level - 1] && levels[level - 1].unlocks) || [];
+}
+
 export { levels };
