@@ -8,7 +8,34 @@
   </head>
   <body>
     <main id="app">
-      <canvas id="game" width="960" height="540"></canvas>
+      <header class="topbar">
+        <div class="topbar-stat">Level <span id="hud-level">1</span></div>
+        <div class="topbar-stat">Wave <span id="hud-wave">1</span></div>
+        <div class="topbar-stat">HP <span id="hud-hp">100</span></div>
+        <div class="topbar-stat">Coins <span id="hud-coins">100</span></div>
+      </header>
+      <div class="layout">
+        <aside class="panel left-panel">
+          <h3>Towers</h3>
+          <div class="hud-tower-list" id="hud-tower-list">
+            <button>AR Turret</button>
+            <button>Marksman</button>
+            <button>AA MG</button>
+          </div>
+        </aside>
+        <section class="playfield">
+          <canvas id="game" width="960" height="540"></canvas>
+        </section>
+        <aside class="panel right-panel">
+          <h3>Selected</h3>
+          <div class="hud-panel">
+            <div>Name: <span id="hud-selected">None</span></div>
+            <div>Range: <span id="hud-range">-</span></div>
+            <div>DPS: <span id="hud-dps">-</span></div>
+            <button id="hud-upgrade">Upgrade</button>
+          </div>
+        </aside>
+      </div>
     </main>
     <script type="module" src="src/main.js"></script>
   </body>
