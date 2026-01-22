@@ -1,0 +1,512 @@
+{
+  "towers": {
+    "ar_turret": [
+      "assets/sprites/towers/ar_turret_l1.svg",
+      "assets/sprites/towers/ar_turret_l2.svg",
+      "assets/sprites/towers/ar_turret_l3.svg",
+      "assets/sprites/towers/ar_turret_l4.svg",
+      "assets/sprites/towers/ar_turret_l5.svg"
+    ],
+    "smg_nest": [
+      "assets/sprites/towers/smg_nest_l1.svg",
+      "assets/sprites/towers/smg_nest_l2.svg",
+      "assets/sprites/towers/smg_nest_l3.svg",
+      "assets/sprites/towers/smg_nest_l4.svg",
+      "assets/sprites/towers/smg_nest_l5.svg"
+    ],
+    "lmg_bunker": [
+      "assets/sprites/towers/lmg_bunker_l1.svg",
+      "assets/sprites/towers/lmg_bunker_l2.svg",
+      "assets/sprites/towers/lmg_bunker_l3.svg",
+      "assets/sprites/towers/lmg_bunker_l4.svg",
+      "assets/sprites/towers/lmg_bunker_l5.svg"
+    ],
+    "gatling_turret": [
+      "assets/sprites/towers/gatling_turret_l1.svg",
+      "assets/sprites/towers/gatling_turret_l2.svg",
+      "assets/sprites/towers/gatling_turret_l3.svg",
+      "assets/sprites/towers/gatling_turret_l4.svg",
+      "assets/sprites/towers/gatling_turret_l5.svg"
+    ],
+    "rail_autocannon": [
+      "assets/sprites/towers/rail_autocannon_l1.svg",
+      "assets/sprites/towers/rail_autocannon_l2.svg",
+      "assets/sprites/towers/rail_autocannon_l3.svg",
+      "assets/sprites/towers/rail_autocannon_l4.svg",
+      "assets/sprites/towers/rail_autocannon_l5.svg"
+    ],
+    "marksman_tower": [
+      "assets/sprites/towers/marksman_tower_l1.svg",
+      "assets/sprites/towers/marksman_tower_l2.svg",
+      "assets/sprites/towers/marksman_tower_l3.svg",
+      "assets/sprites/towers/marksman_tower_l4.svg",
+      "assets/sprites/towers/marksman_tower_l5.svg"
+    ],
+    "sniper_nest": [
+      "assets/sprites/towers/sniper_nest_l1.svg",
+      "assets/sprites/towers/sniper_nest_l2.svg",
+      "assets/sprites/towers/sniper_nest_l3.svg",
+      "assets/sprites/towers/sniper_nest_l4.svg",
+      "assets/sprites/towers/sniper_nest_l5.svg"
+    ],
+    "gauss_rifle": [
+      "assets/sprites/towers/gauss_rifle_l1.svg",
+      "assets/sprites/towers/gauss_rifle_l2.svg",
+      "assets/sprites/towers/gauss_rifle_l3.svg",
+      "assets/sprites/towers/gauss_rifle_l4.svg",
+      "assets/sprites/towers/gauss_rifle_l5.svg"
+    ],
+    "coilgun": [
+      "assets/sprites/towers/coilgun_l1.svg",
+      "assets/sprites/towers/coilgun_l2.svg",
+      "assets/sprites/towers/coilgun_l3.svg",
+      "assets/sprites/towers/coilgun_l4.svg",
+      "assets/sprites/towers/coilgun_l5.svg"
+    ],
+    "longshot_beacon": [
+      "assets/sprites/towers/longshot_beacon_l1.svg",
+      "assets/sprites/towers/longshot_beacon_l2.svg",
+      "assets/sprites/towers/longshot_beacon_l3.svg",
+      "assets/sprites/towers/longshot_beacon_l4.svg",
+      "assets/sprites/towers/longshot_beacon_l5.svg"
+    ],
+    "grenade_launcher": [
+      "assets/sprites/towers/grenade_launcher_l1.svg",
+      "assets/sprites/towers/grenade_launcher_l2.svg",
+      "assets/sprites/towers/grenade_launcher_l3.svg",
+      "assets/sprites/towers/grenade_launcher_l4.svg",
+      "assets/sprites/towers/grenade_launcher_l5.svg"
+    ],
+    "mortar": [
+      "assets/sprites/towers/mortar_l1.svg",
+      "assets/sprites/towers/mortar_l2.svg",
+      "assets/sprites/towers/mortar_l3.svg",
+      "assets/sprites/towers/mortar_l4.svg",
+      "assets/sprites/towers/mortar_l5.svg"
+    ],
+    "howitzer": [
+      "assets/sprites/towers/howitzer_l1.svg",
+      "assets/sprites/towers/howitzer_l2.svg",
+      "assets/sprites/towers/howitzer_l3.svg",
+      "assets/sprites/towers/howitzer_l4.svg",
+      "assets/sprites/towers/howitzer_l5.svg"
+    ],
+    "rocket_pod": [
+      "assets/sprites/towers/rocket_pod_l1.svg",
+      "assets/sprites/towers/rocket_pod_l2.svg",
+      "assets/sprites/towers/rocket_pod_l3.svg",
+      "assets/sprites/towers/rocket_pod_l4.svg",
+      "assets/sprites/towers/rocket_pod_l5.svg"
+    ],
+    "cluster_cannon": [
+      "assets/sprites/towers/cluster_cannon_l1.svg",
+      "assets/sprites/towers/cluster_cannon_l2.svg",
+      "assets/sprites/towers/cluster_cannon_l3.svg",
+      "assets/sprites/towers/cluster_cannon_l4.svg",
+      "assets/sprites/towers/cluster_cannon_l5.svg"
+    ],
+    "cryo_sprayer": [
+      "assets/sprites/towers/cryo_sprayer_l1.svg",
+      "assets/sprites/towers/cryo_sprayer_l2.svg",
+      "assets/sprites/towers/cryo_sprayer_l3.svg",
+      "assets/sprites/towers/cryo_sprayer_l4.svg",
+      "assets/sprites/towers/cryo_sprayer_l5.svg"
+    ],
+    "incendiary_turret": [
+      "assets/sprites/towers/incendiary_turret_l1.svg",
+      "assets/sprites/towers/incendiary_turret_l2.svg",
+      "assets/sprites/towers/incendiary_turret_l3.svg",
+      "assets/sprites/towers/incendiary_turret_l4.svg",
+      "assets/sprites/towers/incendiary_turret_l5.svg"
+    ],
+    "emp_node": [
+      "assets/sprites/towers/emp_node_l1.svg",
+      "assets/sprites/towers/emp_node_l2.svg",
+      "assets/sprites/towers/emp_node_l3.svg",
+      "assets/sprites/towers/emp_node_l4.svg",
+      "assets/sprites/towers/emp_node_l5.svg"
+    ],
+    "shock_coil": [
+      "assets/sprites/towers/shock_coil_l1.svg",
+      "assets/sprites/towers/shock_coil_l2.svg",
+      "assets/sprites/towers/shock_coil_l3.svg",
+      "assets/sprites/towers/shock_coil_l4.svg",
+      "assets/sprites/towers/shock_coil_l5.svg"
+    ],
+    "gas_projector": [
+      "assets/sprites/towers/gas_projector_l1.svg",
+      "assets/sprites/towers/gas_projector_l2.svg",
+      "assets/sprites/towers/gas_projector_l3.svg",
+      "assets/sprites/towers/gas_projector_l4.svg",
+      "assets/sprites/towers/gas_projector_l5.svg"
+    ],
+    "target_painter": [
+      "assets/sprites/towers/target_painter_l1.svg",
+      "assets/sprites/towers/target_painter_l2.svg",
+      "assets/sprites/towers/target_painter_l3.svg",
+      "assets/sprites/towers/target_painter_l4.svg",
+      "assets/sprites/towers/target_painter_l5.svg"
+    ],
+    "ammo_feeder": [
+      "assets/sprites/towers/ammo_feeder_l1.svg",
+      "assets/sprites/towers/ammo_feeder_l2.svg",
+      "assets/sprites/towers/ammo_feeder_l3.svg",
+      "assets/sprites/towers/ammo_feeder_l4.svg",
+      "assets/sprites/towers/ammo_feeder_l5.svg"
+    ],
+    "command_uplink": [
+      "assets/sprites/towers/command_uplink_l1.svg",
+      "assets/sprites/towers/command_uplink_l2.svg",
+      "assets/sprites/towers/command_uplink_l3.svg",
+      "assets/sprites/towers/command_uplink_l4.svg",
+      "assets/sprites/towers/command_uplink_l5.svg"
+    ],
+    "armor_breaker": [
+      "assets/sprites/towers/armor_breaker_l1.svg",
+      "assets/sprites/towers/armor_breaker_l2.svg",
+      "assets/sprites/towers/armor_breaker_l3.svg",
+      "assets/sprites/towers/armor_breaker_l4.svg",
+      "assets/sprites/towers/armor_breaker_l5.svg"
+    ],
+    "logistics_hub": [
+      "assets/sprites/towers/logistics_hub_l1.svg",
+      "assets/sprites/towers/logistics_hub_l2.svg",
+      "assets/sprites/towers/logistics_hub_l3.svg",
+      "assets/sprites/towers/logistics_hub_l4.svg",
+      "assets/sprites/towers/logistics_hub_l5.svg"
+    ],
+    "aa_mg": [
+      "assets/sprites/towers/aa_mg_l1.svg",
+      "assets/sprites/towers/aa_mg_l2.svg",
+      "assets/sprites/towers/aa_mg_l3.svg",
+      "assets/sprites/towers/aa_mg_l4.svg",
+      "assets/sprites/towers/aa_mg_l5.svg"
+    ],
+    "flak_cannon": [
+      "assets/sprites/towers/flak_cannon_l1.svg",
+      "assets/sprites/towers/flak_cannon_l2.svg",
+      "assets/sprites/towers/flak_cannon_l3.svg",
+      "assets/sprites/towers/flak_cannon_l4.svg",
+      "assets/sprites/towers/flak_cannon_l5.svg"
+    ],
+    "sam_site": [
+      "assets/sprites/towers/sam_site_l1.svg",
+      "assets/sprites/towers/sam_site_l2.svg",
+      "assets/sprites/towers/sam_site_l3.svg",
+      "assets/sprites/towers/sam_site_l4.svg",
+      "assets/sprites/towers/sam_site_l5.svg"
+    ],
+    "laser_aa": [
+      "assets/sprites/towers/laser_aa_l1.svg",
+      "assets/sprites/towers/laser_aa_l2.svg",
+      "assets/sprites/towers/laser_aa_l3.svg",
+      "assets/sprites/towers/laser_aa_l4.svg",
+      "assets/sprites/towers/laser_aa_l5.svg"
+    ],
+    "interceptor_drone": [
+      "assets/sprites/towers/interceptor_drone_l1.svg",
+      "assets/sprites/towers/interceptor_drone_l2.svg",
+      "assets/sprites/towers/interceptor_drone_l3.svg",
+      "assets/sprites/towers/interceptor_drone_l4.svg",
+      "assets/sprites/towers/interceptor_drone_l5.svg"
+    ]
+  },
+  "enemies": [
+    "assets/sprites/enemies/grunt.svg",
+    "assets/sprites/enemies/runner.svg",
+    "assets/sprites/enemies/bruiser.svg",
+    "assets/sprites/enemies/heavy.svg",
+    "assets/sprites/enemies/scout.svg",
+    "assets/sprites/enemies/skirmisher.svg",
+    "assets/sprites/enemies/trooper.svg",
+    "assets/sprites/enemies/breaker.svg",
+    "assets/sprites/enemies/tank.svg",
+    "assets/sprites/enemies/bulldozer.svg",
+    "assets/sprites/enemies/crawler.svg",
+    "assets/sprites/enemies/raider.svg",
+    "assets/sprites/enemies/vanguard.svg",
+    "assets/sprites/enemies/marauder.svg",
+    "assets/sprites/enemies/drone.svg",
+    "assets/sprites/enemies/jet.svg",
+    "assets/sprites/enemies/bomber.svg",
+    "assets/sprites/enemies/gunship.svg",
+    "assets/sprites/enemies/sky_tank.svg",
+    "assets/sprites/enemies/stealth_copter.svg"
+  ],
+  "tiles": [
+    "assets/sprites/tiles/path.svg",
+    "assets/sprites/tiles/buildable.svg",
+    "assets/sprites/tiles/blocked.svg",
+    "assets/sprites/tiles/waypoint.svg",
+    "assets/sprites/tiles/spawn.svg",
+    "assets/sprites/tiles/goal.svg"
+  ],
+  "ui": [
+    "assets/sprites/ui/medal_bronze.svg",
+    "assets/sprites/ui/medal_silver.svg",
+    "assets/sprites/ui/medal_gold.svg",
+    "assets/sprites/ui/lock.svg",
+    "assets/sprites/ui/crate.svg",
+    "assets/sprites/ui/air_chevron.svg",
+    "assets/sprites/ui/radar.svg",
+    "assets/sprites/ui/coin.svg",
+    "assets/sprites/ui/heart.svg",
+    "assets/sprites/ui/pause.svg",
+    "assets/sprites/ui/play.svg"
+  ],
+  "towers_png": {
+    "ar_turret": [
+      "assets/sprites/png/towers/ar_turret_l1.png",
+      "assets/sprites/png/towers/ar_turret_l2.png",
+      "assets/sprites/png/towers/ar_turret_l3.png",
+      "assets/sprites/png/towers/ar_turret_l4.png",
+      "assets/sprites/png/towers/ar_turret_l5.png"
+    ],
+    "smg_nest": [
+      "assets/sprites/png/towers/smg_nest_l1.png",
+      "assets/sprites/png/towers/smg_nest_l2.png",
+      "assets/sprites/png/towers/smg_nest_l3.png",
+      "assets/sprites/png/towers/smg_nest_l4.png",
+      "assets/sprites/png/towers/smg_nest_l5.png"
+    ],
+    "lmg_bunker": [
+      "assets/sprites/png/towers/lmg_bunker_l1.png",
+      "assets/sprites/png/towers/lmg_bunker_l2.png",
+      "assets/sprites/png/towers/lmg_bunker_l3.png",
+      "assets/sprites/png/towers/lmg_bunker_l4.png",
+      "assets/sprites/png/towers/lmg_bunker_l5.png"
+    ],
+    "gatling_turret": [
+      "assets/sprites/png/towers/gatling_turret_l1.png",
+      "assets/sprites/png/towers/gatling_turret_l2.png",
+      "assets/sprites/png/towers/gatling_turret_l3.png",
+      "assets/sprites/png/towers/gatling_turret_l4.png",
+      "assets/sprites/png/towers/gatling_turret_l5.png"
+    ],
+    "rail_autocannon": [
+      "assets/sprites/png/towers/rail_autocannon_l1.png",
+      "assets/sprites/png/towers/rail_autocannon_l2.png",
+      "assets/sprites/png/towers/rail_autocannon_l3.png",
+      "assets/sprites/png/towers/rail_autocannon_l4.png",
+      "assets/sprites/png/towers/rail_autocannon_l5.png"
+    ],
+    "marksman_tower": [
+      "assets/sprites/png/towers/marksman_tower_l1.png",
+      "assets/sprites/png/towers/marksman_tower_l2.png",
+      "assets/sprites/png/towers/marksman_tower_l3.png",
+      "assets/sprites/png/towers/marksman_tower_l4.png",
+      "assets/sprites/png/towers/marksman_tower_l5.png"
+    ],
+    "sniper_nest": [
+      "assets/sprites/png/towers/sniper_nest_l1.png",
+      "assets/sprites/png/towers/sniper_nest_l2.png",
+      "assets/sprites/png/towers/sniper_nest_l3.png",
+      "assets/sprites/png/towers/sniper_nest_l4.png",
+      "assets/sprites/png/towers/sniper_nest_l5.png"
+    ],
+    "gauss_rifle": [
+      "assets/sprites/png/towers/gauss_rifle_l1.png",
+      "assets/sprites/png/towers/gauss_rifle_l2.png",
+      "assets/sprites/png/towers/gauss_rifle_l3.png",
+      "assets/sprites/png/towers/gauss_rifle_l4.png",
+      "assets/sprites/png/towers/gauss_rifle_l5.png"
+    ],
+    "coilgun": [
+      "assets/sprites/png/towers/coilgun_l1.png",
+      "assets/sprites/png/towers/coilgun_l2.png",
+      "assets/sprites/png/towers/coilgun_l3.png",
+      "assets/sprites/png/towers/coilgun_l4.png",
+      "assets/sprites/png/towers/coilgun_l5.png"
+    ],
+    "longshot_beacon": [
+      "assets/sprites/png/towers/longshot_beacon_l1.png",
+      "assets/sprites/png/towers/longshot_beacon_l2.png",
+      "assets/sprites/png/towers/longshot_beacon_l3.png",
+      "assets/sprites/png/towers/longshot_beacon_l4.png",
+      "assets/sprites/png/towers/longshot_beacon_l5.png"
+    ],
+    "grenade_launcher": [
+      "assets/sprites/png/towers/grenade_launcher_l1.png",
+      "assets/sprites/png/towers/grenade_launcher_l2.png",
+      "assets/sprites/png/towers/grenade_launcher_l3.png",
+      "assets/sprites/png/towers/grenade_launcher_l4.png",
+      "assets/sprites/png/towers/grenade_launcher_l5.png"
+    ],
+    "mortar": [
+      "assets/sprites/png/towers/mortar_l1.png",
+      "assets/sprites/png/towers/mortar_l2.png",
+      "assets/sprites/png/towers/mortar_l3.png",
+      "assets/sprites/png/towers/mortar_l4.png",
+      "assets/sprites/png/towers/mortar_l5.png"
+    ],
+    "howitzer": [
+      "assets/sprites/png/towers/howitzer_l1.png",
+      "assets/sprites/png/towers/howitzer_l2.png",
+      "assets/sprites/png/towers/howitzer_l3.png",
+      "assets/sprites/png/towers/howitzer_l4.png",
+      "assets/sprites/png/towers/howitzer_l5.png"
+    ],
+    "rocket_pod": [
+      "assets/sprites/png/towers/rocket_pod_l1.png",
+      "assets/sprites/png/towers/rocket_pod_l2.png",
+      "assets/sprites/png/towers/rocket_pod_l3.png",
+      "assets/sprites/png/towers/rocket_pod_l4.png",
+      "assets/sprites/png/towers/rocket_pod_l5.png"
+    ],
+    "cluster_cannon": [
+      "assets/sprites/png/towers/cluster_cannon_l1.png",
+      "assets/sprites/png/towers/cluster_cannon_l2.png",
+      "assets/sprites/png/towers/cluster_cannon_l3.png",
+      "assets/sprites/png/towers/cluster_cannon_l4.png",
+      "assets/sprites/png/towers/cluster_cannon_l5.png"
+    ],
+    "cryo_sprayer": [
+      "assets/sprites/png/towers/cryo_sprayer_l1.png",
+      "assets/sprites/png/towers/cryo_sprayer_l2.png",
+      "assets/sprites/png/towers/cryo_sprayer_l3.png",
+      "assets/sprites/png/towers/cryo_sprayer_l4.png",
+      "assets/sprites/png/towers/cryo_sprayer_l5.png"
+    ],
+    "incendiary_turret": [
+      "assets/sprites/png/towers/incendiary_turret_l1.png",
+      "assets/sprites/png/towers/incendiary_turret_l2.png",
+      "assets/sprites/png/towers/incendiary_turret_l3.png",
+      "assets/sprites/png/towers/incendiary_turret_l4.png",
+      "assets/sprites/png/towers/incendiary_turret_l5.png"
+    ],
+    "emp_node": [
+      "assets/sprites/png/towers/emp_node_l1.png",
+      "assets/sprites/png/towers/emp_node_l2.png",
+      "assets/sprites/png/towers/emp_node_l3.png",
+      "assets/sprites/png/towers/emp_node_l4.png",
+      "assets/sprites/png/towers/emp_node_l5.png"
+    ],
+    "shock_coil": [
+      "assets/sprites/png/towers/shock_coil_l1.png",
+      "assets/sprites/png/towers/shock_coil_l2.png",
+      "assets/sprites/png/towers/shock_coil_l3.png",
+      "assets/sprites/png/towers/shock_coil_l4.png",
+      "assets/sprites/png/towers/shock_coil_l5.png"
+    ],
+    "gas_projector": [
+      "assets/sprites/png/towers/gas_projector_l1.png",
+      "assets/sprites/png/towers/gas_projector_l2.png",
+      "assets/sprites/png/towers/gas_projector_l3.png",
+      "assets/sprites/png/towers/gas_projector_l4.png",
+      "assets/sprites/png/towers/gas_projector_l5.png"
+    ],
+    "target_painter": [
+      "assets/sprites/png/towers/target_painter_l1.png",
+      "assets/sprites/png/towers/target_painter_l2.png",
+      "assets/sprites/png/towers/target_painter_l3.png",
+      "assets/sprites/png/towers/target_painter_l4.png",
+      "assets/sprites/png/towers/target_painter_l5.png"
+    ],
+    "ammo_feeder": [
+      "assets/sprites/png/towers/ammo_feeder_l1.png",
+      "assets/sprites/png/towers/ammo_feeder_l2.png",
+      "assets/sprites/png/towers/ammo_feeder_l3.png",
+      "assets/sprites/png/towers/ammo_feeder_l4.png",
+      "assets/sprites/png/towers/ammo_feeder_l5.png"
+    ],
+    "command_uplink": [
+      "assets/sprites/png/towers/command_uplink_l1.png",
+      "assets/sprites/png/towers/command_uplink_l2.png",
+      "assets/sprites/png/towers/command_uplink_l3.png",
+      "assets/sprites/png/towers/command_uplink_l4.png",
+      "assets/sprites/png/towers/command_uplink_l5.png"
+    ],
+    "armor_breaker": [
+      "assets/sprites/png/towers/armor_breaker_l1.png",
+      "assets/sprites/png/towers/armor_breaker_l2.png",
+      "assets/sprites/png/towers/armor_breaker_l3.png",
+      "assets/sprites/png/towers/armor_breaker_l4.png",
+      "assets/sprites/png/towers/armor_breaker_l5.png"
+    ],
+    "logistics_hub": [
+      "assets/sprites/png/towers/logistics_hub_l1.png",
+      "assets/sprites/png/towers/logistics_hub_l2.png",
+      "assets/sprites/png/towers/logistics_hub_l3.png",
+      "assets/sprites/png/towers/logistics_hub_l4.png",
+      "assets/sprites/png/towers/logistics_hub_l5.png"
+    ],
+    "aa_mg": [
+      "assets/sprites/png/towers/aa_mg_l1.png",
+      "assets/sprites/png/towers/aa_mg_l2.png",
+      "assets/sprites/png/towers/aa_mg_l3.png",
+      "assets/sprites/png/towers/aa_mg_l4.png",
+      "assets/sprites/png/towers/aa_mg_l5.png"
+    ],
+    "flak_cannon": [
+      "assets/sprites/png/towers/flak_cannon_l1.png",
+      "assets/sprites/png/towers/flak_cannon_l2.png",
+      "assets/sprites/png/towers/flak_cannon_l3.png",
+      "assets/sprites/png/towers/flak_cannon_l4.png",
+      "assets/sprites/png/towers/flak_cannon_l5.png"
+    ],
+    "sam_site": [
+      "assets/sprites/png/towers/sam_site_l1.png",
+      "assets/sprites/png/towers/sam_site_l2.png",
+      "assets/sprites/png/towers/sam_site_l3.png",
+      "assets/sprites/png/towers/sam_site_l4.png",
+      "assets/sprites/png/towers/sam_site_l5.png"
+    ],
+    "laser_aa": [
+      "assets/sprites/png/towers/laser_aa_l1.png",
+      "assets/sprites/png/towers/laser_aa_l2.png",
+      "assets/sprites/png/towers/laser_aa_l3.png",
+      "assets/sprites/png/towers/laser_aa_l4.png",
+      "assets/sprites/png/towers/laser_aa_l5.png"
+    ],
+    "interceptor_drone": [
+      "assets/sprites/png/towers/interceptor_drone_l1.png",
+      "assets/sprites/png/towers/interceptor_drone_l2.png",
+      "assets/sprites/png/towers/interceptor_drone_l3.png",
+      "assets/sprites/png/towers/interceptor_drone_l4.png",
+      "assets/sprites/png/towers/interceptor_drone_l5.png"
+    ]
+  },
+  "enemies_png": [
+    "assets/sprites/png/enemies/grunt.png",
+    "assets/sprites/png/enemies/runner.png",
+    "assets/sprites/png/enemies/bruiser.png",
+    "assets/sprites/png/enemies/heavy.png",
+    "assets/sprites/png/enemies/scout.png",
+    "assets/sprites/png/enemies/skirmisher.png",
+    "assets/sprites/png/enemies/trooper.png",
+    "assets/sprites/png/enemies/breaker.png",
+    "assets/sprites/png/enemies/tank.png",
+    "assets/sprites/png/enemies/bulldozer.png",
+    "assets/sprites/png/enemies/crawler.png",
+    "assets/sprites/png/enemies/raider.png",
+    "assets/sprites/png/enemies/vanguard.png",
+    "assets/sprites/png/enemies/marauder.png",
+    "assets/sprites/png/enemies/drone.png",
+    "assets/sprites/png/enemies/jet.png",
+    "assets/sprites/png/enemies/bomber.png",
+    "assets/sprites/png/enemies/gunship.png",
+    "assets/sprites/png/enemies/sky_tank.png",
+    "assets/sprites/png/enemies/stealth_copter.png"
+  ],
+  "tiles_png": [
+    "assets/sprites/png/tiles/path.png",
+    "assets/sprites/png/tiles/buildable.png",
+    "assets/sprites/png/tiles/blocked.png",
+    "assets/sprites/png/tiles/waypoint.png",
+    "assets/sprites/png/tiles/spawn.png",
+    "assets/sprites/png/tiles/goal.png"
+  ],
+  "ui_png": [
+    "assets/sprites/png/ui/medal_bronze.png",
+    "assets/sprites/png/ui/medal_silver.png",
+    "assets/sprites/png/ui/medal_gold.png",
+    "assets/sprites/png/ui/lock.png",
+    "assets/sprites/png/ui/crate.png",
+    "assets/sprites/png/ui/air_chevron.png",
+    "assets/sprites/png/ui/radar.png",
+    "assets/sprites/png/ui/coin.png",
+    "assets/sprites/png/ui/heart.png",
+    "assets/sprites/png/ui/pause.png",
+    "assets/sprites/png/ui/play.png"
+  ]
+}
