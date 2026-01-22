@@ -31,3 +31,68 @@ body {
   image-rendering: pixelated;
   border: 1px solid #3a403e;
 }
+
+#hud {
+  position: absolute;
+  inset: 16px;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+  color: #e6e2d3;
+}
+
+.hud-top {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 16px;
+  justify-content: flex-start;
+  background: rgba(20, 24, 23, 0.8);
+  border: 1px solid #303634;
+  padding: 6px 10px;
+  pointer-events: auto;
+}
+
+.hud-stat {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hud-left,
+.hud-right {
+  background: rgba(20, 24, 23, 0.75);
+  border: 1px solid #303634;
+  padding: 10px;
+  pointer-events: auto;
+}
+
+.hud-left h3,
+.hud-right h3 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hud-tower-list {
+  display: grid;
+  gap: 6px;
+}
+
+.hud-tower-list button,
+#hud-upgrade {
+  background: #2b332f;
+  color: #e6e2d3;
+  border: 1px solid #3a403e;
+  padding: 6px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.hud-panel {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+}
