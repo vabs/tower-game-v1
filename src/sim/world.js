@@ -9,6 +9,7 @@ import { updateTowers } from './towers.js';
 import { updateProjectiles } from './projectiles.js';
 import { updateEffects } from './effects.js';
 import { createStats } from './stats.js';
+import { getDifficulty } from '../core/difficulty.js';
 
 export const STEP = 1 / 60;
 export const STARTING_HP = 25;
@@ -37,9 +38,10 @@ export function startingCoins(level) {
  */
 
 /** Pure and deterministic given `seed`. */
-export function createWorld(levelId, { seed = 1, unlocked, coins, hp } = {}) {
+export function createWorld(levelId, { seed = 1, unlocked, coins, hp, difficulty } = {}) {
   const level = levels[levelId - 1];
   if (!level) throw new Error(`unknown level ${levelId}`);
+  const diff = getDifficulty(difficulty);
   const cumulative = [];
   for (let i = 1; i <= levelId; i++) cumulative.push(...getUnlocksForLevel(i));
   return {
@@ -51,7 +53,8 @@ export function createWorld(levelId, { seed = 1, unlocked, coins, hp } = {}) {
     countdown: null,
     countdownLength: WAVE_COUNTDOWN,
     spawner: null,
-    coins: coins ?? startingCoins(levelId),
+    difficulty: diff,
+    coins: coins ?? Math.round(startingCoins(levelId) * diff.coinMult),
     hp: hp ?? STARTING_HP,
     maxHp: hp ?? STARTING_HP,
     enemies: [],

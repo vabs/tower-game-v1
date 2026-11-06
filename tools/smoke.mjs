@@ -41,8 +41,17 @@ try {
   check('start screen has the panning menu background', (await page.locator('.menu-bg').count()) === 1);
   await page.screenshot({ path: `${outDir}/00a-start.png` });
 
+  check('Regular is the default difficulty', (await page.locator('#btn-diff-regular').getAttribute('aria-checked')) === 'true');
+  await page.click('#btn-diff-veteran');
+  await page.reload();
+  await waitScreen('start');
+  check('difficulty selection persists across reload', (await page.locator('#btn-diff-veteran').getAttribute('aria-checked')) === 'true' && (await page.evaluate(() => JSON.parse(localStorage.getItem('td-save-v1')).difficulty)) === 'veteran');
+  await page.click('#btn-diff-recruit');
+  await page.screenshot({ path: `${outDir}/00a2-start-difficulty.png` });
+
   await page.click('#btn-levels');
   await waitScreen('level-select');
+  check('level select shows the difficulty picker', (await page.locator('.screen-level-select #btn-diff-recruit[aria-checked="true"]').count()) === 1);
   check('level select has 50 levels', (await page.locator('.lvl').count()) === 50);
   check('level 1 unlocked', await page.locator('.lvl[data-level="1"]').isEnabled());
   check('level 2 locked', (await page.locator('.lvl[data-level="2"]').getAttribute('data-locked')) === 'true' && (await page.locator('.lvl[data-level="2"]').isDisabled()));
@@ -54,6 +63,7 @@ try {
   await page.click('.lvl[data-level="1"]');
   await page.waitForFunction(() => window.__td && window.__td.world && document.getElementById('screens').hidden, null, { timeout: 10000 });
   check('level 1 started from select', (await page.evaluate(() => window.__td.world.level)) === 1);
+  check('world uses the saved difficulty', (await page.evaluate(() => window.__td.world.difficulty.id)) === 'recruit');
   check('mission brief shown', ((await page.locator('#hud-brief').textContent()) || '').includes('No leaks for Gold'));
   check('tech unlock tracker shown', ((await page.locator('#hud-unlock').textContent()) || '').includes('Level 2'));
   check('wave preview visible in build phase', await page.locator('#hud-preview').isVisible() && ((await page.locator('#hud-preview-now').textContent()) || '').includes('6x Grunt'), (await page.locator('#hud-preview').textContent()) || '');
@@ -213,6 +223,7 @@ try {
   await waitScreen('level-select');
   check('level 2 unlocked after reload', await page.locator('.lvl[data-level="2"]').isEnabled());
   check('level 3 still locked', await page.locator('.lvl[data-level="3"]').isDisabled());
+  check('medal shows the R difficulty tag', ((await page.locator('.lvl[data-level="1"] .lvl-diff').textContent()) || '') === 'R');
   check('level 1 shows medal badge', (await page.locator('.lvl[data-level="1"] .lvl-badge img').count()) === 1);
   await page.screenshot({ path: `${outDir}/05d-level-select-progress.png` });
 

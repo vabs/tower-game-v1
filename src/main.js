@@ -149,7 +149,7 @@ async function boot() {
   function reset(id = levelId) {
     levelId = id;
     const seed = (Date.now() ^ (Math.random() * 0xffffffff)) >>> 0;
-    app.world = sandbox ? createSandboxWorld(seed) : createWorld(levelId, { seed });
+    app.world = sandbox ? createSandboxWorld(seed) : createWorld(levelId, { seed, difficulty: save.difficulty });
     app.armed = null;
     app.selectedId = null;
     hud.buildTowerList(app.world, { sandbox });
@@ -175,7 +175,7 @@ async function boot() {
     const hpLost = w.stats.hpLost;
     const medal = medalFor(hpLost);
     const improved = isBetterMedal(medal, save.medals[w.level]);
-    recordClear(save, w.level, medal, { time: w.time, towers: snapshotStats(w).towers });
+    recordClear(save, w.level, medal, { difficulty: w.difficulty?.id, time: w.time, towers: snapshotStats(w).towers });
     writeSave(save);
     if (w.level >= MAX_LEVEL) {
       sm.transition('game-end');
@@ -195,6 +195,7 @@ async function boot() {
     onNewCampaign: () => { save = clearSave(); writeSave(save); startLevel(1); },
     onLevelSelect: () => goLevelSelect(),
     onStartLevel: (id) => { if (isLevelUnlocked(save, id)) startLevel(id); },
+    onSetDifficulty: (id) => { save.difficulty = id; writeSave(save); },
     onResume: () => app.resume(),
     onRestart: () => startLevel(app.world.level),
     onNext: () => startLevel(Math.min(app.world.level + 1, MAX_LEVEL)),

@@ -46,7 +46,7 @@ export function spawnEnemy(world, defId, pathIndex) {
   const length = air
     ? Math.hypot(path[1].x - path[0].x, path[1].y - path[0].y)
     : world.map.pathLengths[pathIndex];
-  const hp = scaledHp(def, world.level);
+  const hp = scaledHp(def, world.level, world.difficulty?.hpMult ?? 1);
   const enemy = {
     id: world.nextId++,
     defId,

@@ -41,6 +41,10 @@ In dev builds the running state is exposed as `window.__td` (`world`, `app`, `sm
 
 The same list is on the pause screen. The game pauses by itself when the window loses focus or the tab is hidden during a level. Early-calling the next wave during the countdown pays a small bonus.
 
+## Difficulty
+
+Pick Recruit, Regular or Veteran on the Start screen (also in Level Select); it is saved. Recruit: enemy HP x0.75 and +25% starting coins. Regular: the tuned baseline. Veteran: enemy HP x1.10. Medals are per level; Level Select tags a medal earned on Recruit (R) or Veteran (V). The balance bot and autotune always play Regular.
+
 ## Balance bot
 
 `npm run balance [-- --levels 1-50 --seeds 5]` plays every requested level with a deterministic greedy bot (`tools/balance-bot.js`) and prints win rate, average HP left, boss HP remaining on losses, level duration in sim seconds and unspent coins, plus a per-chapter summary. It only uses the public sim commands (place, upgrade, start wave), so it measures the real rules.

@@ -5,6 +5,7 @@ import { summarizeTowerStats, summarizeEnemyStats } from './analytics.js';
 import { isLevelUnlocked, hasProgress, summarizeCampaign } from '../core/save.js';
 import { SILVER_MAX_HP_LOST } from '../core/medals.js';
 import { CONTROLS } from './hotkeys.js';
+import { DIFFICULTIES, DIFFICULTY_IDS, getDifficulty } from '../core/difficulty.js';
 
 const CHAPTERS = ['Recon', 'Frontline', 'Breakthrough', 'Siege', 'Final Stand'];
 export const MEDAL_LABEL = { gold: 'Gold', silver: 'Silver', bronze: 'Bronze' };
@@ -109,6 +110,34 @@ export function createScreens(sprites, on) {
     return h('div.an-panels', towerPanel, enemyPanel);
   }
 
+  /** Segmented Recruit / Regular / Veteran picker; updates in place and saves through on.onSetDifficulty. */
+  function difficultyPicker(save, { compact = false } = {}) {
+    const box = h('div.diff-picker' + (compact ? '.compact' : ''), { role: 'radiogroup', 'aria-label': 'Difficulty' });
+    const blurb = h('div.diff-blurb', { text: getDifficulty(save.difficulty).blurb });
+    const btns = DIFFICULTY_IDS.map((id) => {
+      const d = DIFFICULTIES[id];
+      return h('button.diff-btn', {
+        type: 'button', id: `btn-diff-${id}`, role: 'radio', 'data-difficulty': id, title: d.blurb,
+        onclick: () => {
+          on.onSetDifficulty(id);
+          sync();
+        },
+        text: d.name,
+      });
+    });
+    function sync() {
+      for (const b of btns) {
+        const on_ = b.dataset.difficulty === save.difficulty;
+        b.classList.toggle('active', on_);
+        b.setAttribute('aria-checked', on_ ? 'true' : 'false');
+      }
+      blurb.textContent = getDifficulty(save.difficulty).blurb;
+    }
+    sync();
+    box.append(...btns);
+    return compact ? box : h('div.diff-wrap', box, blurb);
+  }
+
   // ---- Start ----
   function showStart(save) {
     const progress = hasProgress(save);
@@ -126,6 +155,7 @@ export function createScreens(sprites, on) {
       h('div.title-art', icon('towers/gatling_turret_l5', 'px-icon xl'), icon('towers/rail_autocannon_l5', 'px-icon xl'), icon('towers/aa_mg_l5', 'px-icon xl')),
       h('h1.title-logo', { 'aria-label': 'Tower Defence' }, icon('ui/title_logo', 'logo-img', 'Tower Defence')),
       h('p.subtitle', { text: '50 missions. 30 towers. Hold the line.' }),
+      difficultyPicker(save),
       h('div.menu',
         progress ? button(`Continue (Level ${save.unlockedLevel})`, () => on.onContinue(), { primary: true, id: 'btn-continue' }) : null,
         newBtn,
@@ -154,6 +184,9 @@ export function createScreens(sprites, on) {
           disabled: !unlocked, onclick: () => on.onStartLevel(id),
         },
         h('span.lvl-num', { text: String(id) }),
+        medal && DIFFICULTIES[save.medalDifficulty?.[id]]?.tag
+          ? h('span.lvl-diff', { title: `Medal earned on ${DIFFICULTIES[save.medalDifficulty[id]].name}`, text: DIFFICULTIES[save.medalDifficulty[id]].tag })
+          : null,
         h('span.lvl-badge', unlocked
           ? icon(medal ? `ui/medal_${medal}` : 'ui/medal_empty', 'px-icon', medal ? MEDAL_LABEL[medal] : 'no medal')
           : icon('ui/lock', 'px-icon', 'locked')),
@@ -167,11 +200,12 @@ export function createScreens(sprites, on) {
     mount('level-select', [
       h('div.screen-head',
         h('h2', { text: 'Level Select' }),
+        difficultyPicker(save, { compact: true }),
         h('div.medal-count',
           ...['gold', 'silver', 'bronze'].map((m) => h('span', icon(`ui/medal_${m}`, 'px-icon', m), ` ${summary[m]}`))),
         button('Back', () => on.onToStart(), { id: 'btn-back' })),
       h('div.chapters', ...rows),
-      h('p.legend.muted', 'BOSS = boss wave. Crate = supply drop wave. Gold: no HP lost. Silver: 5 or less.'),
+      h('p.legend.muted', 'BOSS = boss wave. Crate = supply drop wave. Gold: no HP lost. Silver: 5 or less. R / V tag = medal earned on Recruit / Veteran.'),
     ]);
   }
 

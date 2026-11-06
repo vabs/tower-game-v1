@@ -441,3 +441,16 @@ body {
 .controls-grid { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; font-size: 11px; color: #b9c9bd; }
 .controls-grid kbd { color: #e0c040; font-family: inherit; }
 @media (min-width: 900px) { .controls-grid { grid-template-columns: max-content 1fr max-content 1fr; } }
+
+/* ---- difficulty ---- */
+.diff-wrap { display: grid; justify-items: center; gap: 4px; }
+.diff-picker { display: inline-flex; border: 1px solid #4a524f; }
+.diff-btn { background: #1f2624; color: #9aa59f; border: 0; border-right: 1px solid #4a524f; padding: 6px 14px; font: inherit; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; }
+.diff-btn:last-child { border-right: 0; }
+.diff-btn:hover { color: #e6e2d3; }
+.diff-btn.active { background: #3b5a3a; color: #e6e2d3; }
+.diff-btn[data-difficulty="veteran"].active { background: #5a3b3b; }
+.diff-btn:focus-visible { outline: 2px solid #c2b280; outline-offset: -2px; }
+.diff-picker.compact .diff-btn { padding: 4px 9px; font-size: 11px; }
+.diff-blurb { font-size: 11px; color: #9aa59f; }
+.lvl-diff { position: absolute; top: 2px; right: 3px; font-size: 9px; font-weight: bold; color: #e0c040; }

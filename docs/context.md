@@ -30,6 +30,9 @@ The simulation is pure and deterministic (fixed step 1/60 s, seeded RNG, no DOM,
 - Enemy HP per level: `(1 + 0.03 * (level - 1)) * LEVEL_TUNE[level - 1]`; bosses also `* BOSS_TUNE`. Boss base HP is 6x (ground) / 4x (air) the base enemy; a leaking boss takes 25 HP.
 - Upgrade costs follow one formula: every upgrade buys 85% of the power per coin of a fresh L1 of the same tower.
 
+## UI additions (gameplay pass 1)
+Next-wave preview card (`ui/wavePreview.js`), tower tooltips and upgrade deltas (`ui/towerInfo.js`), aura highlight/buff pips/mark reticles, floating coin text, leak flash, wave/boss/supply banners, hotkeys (`ui/hotkeys.js`: Space, U, S/Delete, T, Tab), and Recruit/Regular/Veteran difficulty (`core/difficulty.js`, world option `difficulty`; Veteran HP x1.10, Recruit HP x0.75 and +25% coins; saved in the save file, missing means Regular).
+
 ## How to run
 - `npm install`, `npm run dev`
 - `npm test`, `npm run smoke`, `npm run build` (open `dist/index.html`), `npm run balance`

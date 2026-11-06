@@ -411,7 +411,7 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     const lv = levels[world.level - 1];
     const mapName = lv.mapType[0].toUpperCase() + lv.mapType.slice(1);
     const waves = `${world.waves.length} waves${lv.supplyDropAfterWave != null ? ' (1 supply drop)' : ''}`;
-    el.brief.append(row(`Map: ${mapName}`), row(waves));
+    el.brief.append(row(`Map: ${mapName}`), row(waves), row(`Difficulty: ${world.difficulty?.name ?? 'Regular'}`));
     const fresh = [...enemies.filter((e) => INTRODUCED_AT[e.id] === world.level), ...(BOSS_SEQUENCE[lv.boss] ?? []).map((id) => bosses.find((b) => b.id === id)).filter(Boolean)];
     if (fresh.length) {
       const line = row('New: ');
