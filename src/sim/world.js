@@ -5,9 +5,11 @@ import { loadMap } from './map.js';
 import { buildWaves } from '../data/waves.js';
 import { updateEnemies } from './enemies.js';
 import { updateSpawner } from './spawner.js';
+import { updateTowers } from './towers.js';
+import { updateProjectiles } from './projectiles.js';
 
 export const STEP = 1 / 60;
-export const STARTING_HP = 100;
+export const STARTING_HP = 25;
 export const WAVE_COUNTDOWN = 10;
 
 /** Decision 15. */
@@ -68,6 +70,9 @@ export function step(world, dt = STEP) {
   world.time += dt;
   updateSpawner(world, dt);
   updateEnemies(world, dt);
+  updateTowers(world, dt);
+  updateProjectiles(world, dt);
+  world.enemies = world.enemies.filter((e) => !e.dead);
   if (world.hp <= 0) {
     world.phase = 'lost';
     world.events.push({ type: 'levelEnd', result: 'lost' });

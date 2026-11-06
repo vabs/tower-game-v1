@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { createWorld, step, STEP, STARTING_HP, WAVE_COUNTDOWN } from '../../src/sim/world.js';
+import { createWorld, step, STEP, WAVE_COUNTDOWN } from '../../src/sim/world.js';
 import { startWave } from '../../src/sim/commands.js';
 import { buildWaves } from '../../src/data/waves.js';
 import { buildSpawnQueue } from '../../src/sim/spawner.js';
@@ -23,8 +23,8 @@ test('level 1 has 3 waves of grunts/runners', () => {
 test('spawn queue has the right counts and ordering', () => {
   const wave = buildWaves(1)[1];
   const q = buildSpawnQueue(wave);
-  expect(q.filter((e) => e.id === 'grunt')).toHaveLength(8);
-  expect(q.filter((e) => e.id === 'runner')).toHaveLength(4);
+  expect(q.filter((e) => e.id === 'grunt')).toHaveLength(6);
+  expect(q.filter((e) => e.id === 'runner')).toHaveLength(3);
   for (let i = 1; i < q.length; i++) expect(q[i].t).toBeGreaterThan(q[i - 1].t);
 });
 
@@ -45,7 +45,7 @@ test('wave spawns the expected number of enemies', () => {
     return x.phase !== 'wave';
   });
   spawned = seen.size;
-  expect(spawned).toBe(8);
+  expect(spawned).toBe(6);
 });
 
 test('stipend is paid once per wave and wave ends only when field is clear', () => {
@@ -93,10 +93,11 @@ test('calling the next wave early pays a bonus and cancels countdown', () => {
 
 test('with no towers all waves leak -> hp reduced, then won if hp survives', () => {
   const w = createWorld(1);
+  w.hp = w.maxHp = 1000;
   startWave(w);
   runUntil(w, (x) => x.phase === 'won' || x.phase === 'lost');
-  const total = 8 + 12 + 18;
-  expect(STARTING_HP - w.hp).toBe(total); // all 1-damage enemies
+  const total = 6 + 9 + 13;
+  expect(1000 - w.hp).toBe(total); // all 1-damage enemies
   expect(w.phase).toBe('won');
 });
 

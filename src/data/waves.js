@@ -11,17 +11,17 @@ export const GROUP_GAP = 1.5;
 export function buildWaves(level) {
   if (level === 1) {
     return [
-      { enemies: [{ id: 'grunt', count: 8, interval: 1.2 }] },
+      { enemies: [{ id: 'grunt', count: 6, interval: 1.4 }] },
       {
         enemies: [
-          { id: 'grunt', count: 8, interval: 1.0 },
-          { id: 'runner', count: 4, interval: 0.8 },
+          { id: 'grunt', count: 6, interval: 1.2 },
+          { id: 'runner', count: 3, interval: 1.0 },
         ],
       },
       {
         enemies: [
-          { id: 'grunt', count: 10, interval: 0.9 },
-          { id: 'runner', count: 8, interval: 0.6 },
+          { id: 'grunt', count: 8, interval: 1.0 },
+          { id: 'runner', count: 5, interval: 0.8 },
         ],
       },
     ];

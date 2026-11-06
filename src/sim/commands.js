@@ -1,4 +1,5 @@
 import { beginWave } from './spawner.js';
+import { createTower, getTowerDef } from './towers.js';
 
 /** @typedef {{ok:true}|{ok:false,reason:string}} Result */
 
@@ -17,4 +18,32 @@ export function startWave(world) {
   }
   beginWave(world);
   return { ok: true, bonus };
+}
+
+/**
+ * Check whether a tower can be placed (no side effects).
+ * Reasons: unknown_tower, locked, not_buildable, occupied, unaffordable, game_over.
+ * @returns {Result}
+ */
+export function canPlaceTower(world, typeId, tx, ty) {
+  if (world.phase === 'won' || world.phase === 'lost') return { ok: false, reason: 'game_over' };
+  const def = getTowerDef(typeId);
+  if (!def) return { ok: false, reason: 'unknown_tower' };
+  if (!world.unlocked.includes(typeId)) return { ok: false, reason: 'locked' };
+  if (!world.map.buildable(tx, ty)) return { ok: false, reason: 'not_buildable' };
+  if (world.towers.some((t) => t.tx === tx && t.ty === ty)) return { ok: false, reason: 'occupied' };
+  if (world.coins < def.levels[0].cost) return { ok: false, reason: 'unaffordable' };
+  return { ok: true };
+}
+
+/** @returns {{ok:true,tower:object}|{ok:false,reason:string}} */
+export function placeTower(world, typeId, tx, ty) {
+  const check = canPlaceTower(world, typeId, tx, ty);
+  if (!check.ok) return check;
+  const def = getTowerDef(typeId);
+  world.coins -= def.levels[0].cost;
+  const tower = createTower(world, def, tx, ty);
+  world.towers.push(tower);
+  world.events.push({ type: 'place', towerId: tower.id });
+  return { ok: true, tower };
 }
