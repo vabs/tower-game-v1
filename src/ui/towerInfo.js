@@ -79,6 +79,14 @@ export function upgradeDelta(def, level, cost, auraRate = 0) {
   if (dCoins) parts.push(`${sign(dCoins)} coins/wave`);
   const dpsPerCoin = cost > 0 ? dDps / cost : 0;
   let text = parts.join(', ') || 'No stat change';
-  if (Math.abs(dDps) >= 0.05) text += ` → ${sign(dDps, 1)} DPS (${dpsPerCoin.toFixed(2)}/coin)`;
+  if (Math.abs(dDps) >= 0.5) text += ` → ${sign(dDps, 1)} DPS (${dpsPerCoin.toFixed(2)}/coin)`;
   return { toLevel: level + 1, cost, dDamage, dRate, dRange, dDps, dpsPerCoin, text };
+}
+
+/** Lines for the selected-tower buff list, e.g. "+12% rate from Ammo Feeder". */
+export function describeBuffs(sources) {
+  return sources.map((b) => ({
+    text: `+${pct(b.amount)}% ${b.kind === 'fireRate' ? 'rate' : 'range'} from ${b.name}${b.applied ? '' : ' (weaker, not applied)'}`,
+    applied: b.applied,
+  }));
 }

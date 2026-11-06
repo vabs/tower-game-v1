@@ -279,6 +279,15 @@ try {
   const mode = await page.evaluate(() => window.__td.world.towers.find((t) => t.typeId === 'ar_turret').targeting);
   check('targeting mode changed', mode === 'last', mode);
 
+  // combo visibility: buff list on a boosted tower, aura highlight when the feeder is selected
+  await clickTile2(6, 6);
+  await page.waitForTimeout(150);
+  const buffText = (await page.locator('#hud-buffs').textContent()) || '';
+  check('selected tower lists buffs from its aura source', /rate from Ammo Feeder/.test(buffText), buffText);
+  await clickTile2(7, 6);
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: `${outDir}/07b-aura-highlight.png` });
+
   // sell
   const n0 = await page.evaluate(() => window.__td.world.towers.length);
   const c0 = await page.evaluate(() => window.__td.world.coins);

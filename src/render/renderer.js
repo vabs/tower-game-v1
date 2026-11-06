@@ -1,5 +1,6 @@
 import { TILE_SIZE } from '../core/grid.js';
 import { towerStats, towerLevel, dronePosition } from '../sim/towers.js';
+import { auraTargetsOf } from '../sim/auras.js';
 
 const S = TILE_SIZE; // sprites are 24px, drawn at 2x == one tile
 
@@ -242,6 +243,58 @@ export function createRenderer(canvas, sprites) {
     }
   }
 
+  /** Tiny pips in a tower's top-right corner: orange = fire-rate aura, blue = range aura. */
+  function drawBuffPips(t) {
+    const a = t.aura;
+    if (!a || (!a.fireRate && !a.range)) return;
+    let x = t.tx * S + S - 9;
+    const y = t.ty * S + 3;
+    const pip = (fill) => {
+      ctx.fillStyle = '#10130f';
+      ctx.fillRect(x - 1, y - 1, 8, 8);
+      ctx.fillStyle = fill;
+      ctx.beginPath();
+      ctx.moveTo(x + 3, y);
+      ctx.lineTo(x + 6, y + 6);
+      ctx.lineTo(x, y + 6);
+      ctx.closePath();
+      ctx.fill();
+      x -= 9;
+    };
+    if (a.fireRate) pip('#ffb347');
+    if (a.range) pip('#7fc8ff');
+  }
+
+  /** Reticle around an enemy marked by Target Painter (red) / Armor Breaker (orange). */
+  function drawMarkReticle(e, cx, cy, half, tNow) {
+    const st = e.status;
+    if (!st.paint && !st.armor) return;
+    const r = Math.max(14, half * 0.62);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(tNow * 1.2);
+    ctx.lineWidth = 2;
+    const ring = (rad, col, dash) => {
+      ctx.strokeStyle = col;
+      ctx.setLineDash(dash);
+      ctx.beginPath();
+      ctx.arc(0, 0, rad, 0, Math.PI * 2);
+      ctx.stroke();
+    };
+    if (st.paint) ring(r, 'rgba(255,90,90,0.95)', [8, 6]);
+    if (st.armor) ring(st.paint ? r + 5 : r, 'rgba(255,170,64,0.95)', [3, 5]);
+    ctx.setLineDash([]);
+    ctx.strokeStyle = st.paint ? 'rgba(255,90,90,0.95)' : 'rgba(255,170,64,0.95)';
+    for (let i = 0; i < 4; i++) {
+      ctx.rotate(Math.PI / 2);
+      ctx.beginPath();
+      ctx.moveTo(r + 3, 0);
+      ctx.lineTo(r + 9, 0);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   function drawFx(dt) {
     for (const f of fx) f.age += dt;
     fx = fx.filter((f) => f.age < f.dur);
@@ -386,6 +439,7 @@ export function createRenderer(canvas, sprites) {
       ctx.globalAlpha = 1;
       if (Math.floor(tNow * 14) % 2 === 0) sprite('fx/hit_spark', ex - 12, oy - 14, 24, 24);
     }
+    drawMarkReticle(e, ex, cy, half, tNow);
     if (e.hp < e.maxHp || e.boss) {
       const w = e.boss ? 64 : 32;
       const h = e.boss ? 6 : 4;
@@ -430,12 +484,22 @@ export function createRenderer(canvas, sprites) {
         ctx.arc(sel.x, sel.y, (lv.auraRange ?? lv.range) * S, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
+        // Highlight every tower receiving this aura.
+        const pulse = 0.5 + 0.5 * Math.sin(now * 5);
+        for (const t of auraTargetsOf(world, sel)) {
+          ctx.fillStyle = `rgba(120,190,255,${0.16 + 0.1 * pulse})`;
+          ctx.fillRect(t.tx * S, t.ty * S, S, S);
+          ctx.strokeStyle = `rgba(150,210,255,${0.7 + 0.3 * pulse})`;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(t.tx * S + 2, t.ty * S + 2, S - 4, S - 4);
+        }
       }
     }
 
     for (const t of world.towers) {
       sprite(`towers/${t.typeId}_l${t.level}`, t.tx * S, t.ty * S);
       if (t.typeId === 'interceptor_drone') drawDrone(world, t);
+      drawBuffPips(t);
     }
     if (sel) {
       ctx.lineWidth = 2;

@@ -6,7 +6,8 @@ import { bosses, BOSS_SEQUENCE } from '../data/bosses.js';
 import { INTRODUCED_AT } from '../data/waves.js';
 import { medalFor } from '../core/medals.js';
 import { summarizeWave } from './wavePreview.js';
-import { levelSpecial, towerCardInfo, upgradeDelta } from './towerInfo.js';
+import { levelSpecial, towerCardInfo, upgradeDelta, describeBuffs } from './towerInfo.js';
+import { auraSourcesFor } from '../sim/auras.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -36,13 +37,6 @@ const FAMILIES = [
 /** One line of per-tower special stats for the selected panel. */
 export function describeSpecial(tower) {
   const out = levelSpecial(tower.def, towerLevel(tower));
-  const aura = tower.aura;
-  if (aura && (aura.fireRate || aura.range)) {
-    const parts = [];
-    if (aura.fireRate) parts.push(`+${Math.round(aura.fireRate * 100)}% rate`);
-    if (aura.range) parts.push(`+${Math.round(aura.range * 100)}% range`);
-    out.push(`Boosted ${parts.join(', ')}`);
-  }
   return out;
 }
 
@@ -55,7 +49,7 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     level: $('hud-level'), wave: $('hud-wave'), hp: $('hud-hp'), coins: $('hud-coins'),
     start: $('hud-start'), msg: $('hud-msg'), list: $('hud-tower-list'), spawnTest: $('hud-spawn-test'),
     selName: $('hud-selected'), selRange: $('hud-range'), selDps: $('hud-dps'), selLevel: $('hud-sel-level'),
-    selDamage: $('hud-damage'), selRate: $('hud-rate'), special: $('hud-special'),
+    selDamage: $('hud-damage'), selRate: $('hud-rate'), special: $('hud-special'), buffs: $('hud-buffs'),
     targeting: $('hud-targeting'), upgrade: $('hud-upgrade'), sell: $('hud-sell'),
     pause: $('hud-pause'), speed: $('hud-speed'), speedIcon: $('hud-speed-icon'), pauseIcon: $('hud-pause-icon'), medal: $('hud-medal'), brief: $('hud-brief'), unlock: $('hud-unlock'),
     preview: $('hud-preview'), previewHead: $('hud-preview-head'), previewNow: $('hud-preview-now'), previewThen: $('hud-preview-then'),
@@ -66,6 +60,7 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
   let msgTimer = null;
   let specialKey = '';
   let previewKey = '';
+  let buffsKey = '';
 
   el.start.addEventListener('click', () => onStart());
   el.pause.addEventListener('click', () => onPause?.());
@@ -204,6 +199,8 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
       for (const n of [el.selName, el.selLevel, el.selDamage, el.selRate, el.selRange, el.selDps]) setText(n, n === el.selName ? 'None' : '-');
       setText(el.special, '');
       specialKey = '';
+      buffsKey = '';
+      el.buffs.textContent = '';
       el.targeting.disabled = true;
       el.upgrade.disabled = true;
       el.sell.disabled = true;
@@ -227,6 +224,18 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
         const d = document.createElement('div');
         d.textContent = l;
         el.special.appendChild(d);
+      }
+    }
+    const buffs = describeBuffs(auraSourcesFor(world, tower));
+    const bkey = `${tower.id}:${buffs.map((b) => b.text).join('|')}`;
+    if (bkey !== buffsKey) {
+      buffsKey = bkey;
+      el.buffs.textContent = '';
+      for (const b of buffs) {
+        const d = document.createElement('div');
+        d.className = 'buff' + (b.applied ? '' : ' dim');
+        d.textContent = b.text;
+        el.buffs.append(d);
       }
     }
     const attacks = s.baseRate > 0;

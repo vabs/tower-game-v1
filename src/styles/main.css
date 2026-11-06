@@ -393,3 +393,9 @@ body {
 #hud-upgrade { display: grid; gap: 2px; text-align: left; }
 .up-delta { font-size: 10px; color: #8be08b; white-space: normal; line-height: 1.25; }
 .up-delta[hidden] { display: none; }
+
+.hud-buffs { display: grid; gap: 2px; font-size: 11px; }
+.hud-buffs:empty { display: none; }
+.buff { color: #9fd0ff; }
+.buff::before { content: "\25B2 "; font-size: 9px; }
+.buff.dim { color: #6f7f8a; }
