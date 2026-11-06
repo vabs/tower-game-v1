@@ -100,3 +100,59 @@ body {
   gap: 6px;
   font-size: 12px;
 }
+
+#hud-start {
+  margin-left: auto;
+  background: #3b5a3a;
+  color: #e6e2d3;
+  border: 1px solid #5c8a5a;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+#hud-start:disabled { opacity: 0.5; cursor: default; }
+
+.topbar { align-items: center; }
+.topbar-msg { font-size: 12px; color: #e0c040; min-width: 220px; text-align: right; }
+
+.hud-tower-list button {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  font-family: inherit;
+}
+.hud-tower-list button img { width: 24px; height: 24px; image-rendering: pixelated; }
+.hud-tower-list button .cost { color: #e0c040; }
+.hud-tower-list button:disabled { opacity: 0.45; cursor: not-allowed; }
+.hud-tower-list button.armed { border-color: #8be08b; background: #34503a; }
+#hud-upgrade:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.playfield { position: relative; }
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 10, 9, 0.7);
+}
+.overlay[hidden] { display: none; }
+.overlay-box {
+  background: #1a201e;
+  border: 2px solid #4a524f;
+  padding: 24px 40px;
+  text-align: center;
+}
+.overlay-box h2 { margin: 0 0 8px; }
+.overlay-box button {
+  background: #3b5a3a;
+  color: #e6e2d3;
+  border: 1px solid #5c8a5a;
+  padding: 8px 20px;
+  font: inherit;
+  cursor: pointer;
+}
