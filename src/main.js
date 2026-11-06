@@ -123,7 +123,7 @@ async function boot() {
     app.selectedId = null;
     hud.buildTowerList(app.world, { sandbox });
     hud.buildBrief(app.world, { sandbox });
-    if (import.meta.env.DEV) window.__td = { world: app.world, app, sm, screens, get save() { return save; } };
+    if (import.meta.env.DEV) window.__td = { world: app.world, app, sm, screens, renderer, get save() { return save; } };
   }
 
   // ---- flow ----
@@ -191,6 +191,7 @@ async function boot() {
     for (const ev of w.events) {
       if (ev.type === 'waveEnd') hud.flash(`Wave cleared  +${ev.stipend + (ev.hub || 0)} coins`);
     }
+    if (sm.current === 'playing') hud.onEvents(w.events, w, app.speed);
     if (!sandbox && sm.current === 'playing') {
       for (const ev of w.events) {
         if (ev.type !== 'levelEnd') continue;

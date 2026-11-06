@@ -52,6 +52,7 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     selDamage: $('hud-damage'), selRate: $('hud-rate'), special: $('hud-special'), buffs: $('hud-buffs'),
     targeting: $('hud-targeting'), upgrade: $('hud-upgrade'), sell: $('hud-sell'),
     pause: $('hud-pause'), speed: $('hud-speed'), speedIcon: $('hud-speed-icon'), pauseIcon: $('hud-pause-icon'), medal: $('hud-medal'), brief: $('hud-brief'), unlock: $('hud-unlock'),
+    edge: $('fx-edge'), banner: $('fx-banner'), coinsChip: $('hud-coins-chip'), hpChip: $('hud-hp-chip'),
     preview: $('hud-preview'), previewHead: $('hud-preview-head'), previewNow: $('hud-preview-now'), previewThen: $('hud-preview-then'),
   };
   const setSrc = (img, key) => { const sp = sprites[key]; if (sp && img.getAttribute('src') !== sp.src) img.src = sp.src; };
@@ -310,12 +311,59 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     }
   }
 
+  // ---- feedback juice: all cosmetic, durations scale with game speed ----
+  const restart = (node, cls, ms) => {
+    node.style.setProperty('--fx-ms', `${Math.round(ms)}ms`);
+    node.classList.remove(cls);
+    void node.offsetWidth; // restart the CSS animation
+    node.classList.add(cls);
+  };
+  let bannerTimer = null;
+  function banner(main, sub = '', kind = '', ms = 1900) {
+    const b = el.banner;
+    b.hidden = false;
+    b.dataset.kind = kind;
+    b.firstElementChild.textContent = main;
+    b.lastElementChild.textContent = sub;
+    restart(b, 'show', ms);
+    clearTimeout(bannerTimer);
+    bannerTimer = setTimeout(() => { b.hidden = true; b.classList.remove('show'); }, ms);
+  }
+
+  /** React to sim events: wave/supply/boss banners and leak feedback. */
+  function onEvents(events, world, speed = 1) {
+    const sp = Math.max(1, speed);
+    for (const ev of events) {
+      if (ev.type === 'leak') {
+        restart(el.edge, 'flash', 520 / sp);
+        restart(el.hpChip, 'shake', 460 / sp);
+      } else if (ev.type === 'waveStart') {
+        const wave = world.waves[ev.wave];
+        const n = ev.wave + 1;
+        if (wave?.supply) banner(`Wave ${n}`, `Supply drop +${wave.coins}`, 'supply', 2200 / sp);
+        else if (wave?.enemies.some((g) => g.id.endsWith('_boss'))) banner(`Wave ${n}`, 'Boss incoming!', 'boss', 2400 / sp);
+        else banner(`Wave ${n}`, '', '', 1500 / sp);
+      }
+    }
+  }
+
+  let lastCoins = null;
+  let lastLevelKey = '';
+  function chipFlash(world, sp) {
+    const key = `${world.level}:${world.seed}`;
+    if (key !== lastLevelKey) { lastLevelKey = key; lastCoins = world.coins; return; }
+    if (world.coins === lastCoins) return;
+    restart(el.coinsChip, world.coins > lastCoins ? 'gain' : 'spend', 420 / Math.max(1, sp));
+    lastCoins = world.coins;
+  }
+
   function update(world, app) {
     const total = world.waves.length;
     el.level.textContent = world.level;
     el.wave.textContent = `${Math.min(world.waveIndex + 1, total)}/${total}`;
     el.hp.textContent = `${world.hp}/${world.maxHp}`;
     el.coins.textContent = world.coins;
+    chipFlash(world, app.speed ?? 1);
     updateStart(world);
     const sp = app.speed ?? 1;
     setSrc(el.speedIcon, `ui/speed_${sp}x`);
@@ -393,5 +441,5 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     }
   }
 
-  return { buildTowerList, buildBrief, update, flash };
+  return { buildTowerList, buildBrief, update, flash, onEvents, banner };
 }

@@ -97,10 +97,16 @@ try {
   await page.screenshot({ path: `${outDir}/03-selected.png` });
 
   await page.click('#hud-start');
-  await page.waitForTimeout(6000);
+  await page.waitForTimeout(300);
+  check('wave banner shows at wave start', (await page.locator('#fx-banner').isVisible()) && /Wave 1/.test((await page.locator('#fx-banner').textContent()) || ''));
+  await page.screenshot({ path: `${outDir}/03b-wave-banner.png` });
+  await page.waitForTimeout(5700);
   const st = await page.evaluate(() => ({ phase: window.__td.world.phase, enemies: window.__td.world.enemies.length, proj: window.__td.world.projectiles.length }));
   check('wave running with enemies', st.phase === 'wave' && st.enemies > 0, JSON.stringify(st));
   await page.screenshot({ path: `${outDir}/04-wave.png` });
+  const floated = await page.waitForFunction(() => window.__td.renderer.debug.floatSpawned() > 0, null, { timeout: 20000 }).then(() => true, () => false);
+  check('floating coin text appears after kills', floated, `spawned=${await page.evaluate(() => window.__td.renderer.debug.floatSpawned())}`);
+  await page.screenshot({ path: `${outDir}/04a-coin-float.png` });
 
   // ---- pause with Esc: sim frozen, analytics visible ----
   await page.keyboard.press('Escape');

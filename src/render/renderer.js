@@ -233,7 +233,25 @@ export function createRenderer(canvas, sprites) {
   const FX_CAP = 120;
 
   /** Turn sim events into effects. Call once per frame before the events are cleared. */
+  let floatSpawned = 0; // debug/test counter
+  /** Kills in one frame are batched per 2x2-tile cell so a big pop-off reads as one "+N". */
+  function floatCoins(kills) {
+    const cells = new Map();
+    for (const k of kills) {
+      const key = `${Math.floor(k.x / (S * 2))},${Math.floor(k.y / (S * 2))}`;
+      const c = cells.get(key);
+      if (c) { c.coins += k.coins; c.n++; c.x += k.x; c.y += k.y; } else cells.set(key, { coins: k.coins, n: 1, x: k.x, y: k.y });
+    }
+    for (const c of cells.values()) {
+      if (c.coins <= 0 || fx.filter((f) => f.kind === 'coin').length >= 24) continue;
+      fx.push({ kind: 'coin', text: `+${c.coins}`, x: c.x / c.n, y: c.y / c.n - 16, big: c.n > 1, age: 0, dur: 0.9 });
+      floatSpawned++;
+    }
+  }
+
   function consume(events) {
+    const kills = events.filter((ev) => ev.type === 'kill');
+    if (kills.length) floatCoins(kills);
     for (const ev of events) {
       if (fx.length > FX_CAP) break;
       if (ev.type === 'hit') fx.push({ kind: 'spark', x: ev.x, y: ev.y, age: 0, dur: 0.16 });
@@ -311,6 +329,17 @@ export function createRenderer(canvas, sprites) {
         const rd = f.r * 2 * (0.5 + 0.5 * t);
         ctx.globalAlpha = 0.5 * (1 - t);
         sprite('fx/splash_ring', f.x - rd / 2, f.y - rd / 2, rd, rd);
+      } else if (f.kind === 'coin') {
+        // small gold number that rises and fades; stays above the unit, outlined so it reads on any ground
+        const rise = 22 * (1 - (1 - t) * (1 - t));
+        ctx.globalAlpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4;
+        ctx.font = `bold ${f.big ? 15 : 12}px "Courier New", monospace`;
+        ctx.textAlign = 'center';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'rgba(10,12,10,0.85)';
+        ctx.strokeText(f.text, f.x, f.y - rise);
+        ctx.fillStyle = '#ffd84a';
+        ctx.fillText(f.text, f.x, f.y - rise);
       } else if (f.kind === 'chain') {
         ctx.globalAlpha = 1 - t;
         ctx.strokeStyle = '#bfe8ff';
@@ -528,5 +557,5 @@ export function createRenderer(canvas, sprites) {
     }
   }
 
-  return { draw, consume };
+  return { draw, consume, debug: { floatSpawned: () => floatSpawned, activeFx: () => fx.length } };
 }

@@ -11,8 +11,8 @@
       <header class="topbar">
         <div class="topbar-stat">Level <span id="hud-level">1</span></div>
         <div class="topbar-stat">Wave <span id="hud-wave">1</span></div>
-        <div class="topbar-stat">HP <span id="hud-hp">25</span></div>
-        <div class="topbar-stat">Coins <span id="hud-coins">200</span></div>
+        <div class="topbar-stat chip-hp" id="hud-hp-chip">HP <span id="hud-hp">25</span></div>
+        <div class="topbar-stat chip-coins" id="hud-coins-chip">Coins <span id="hud-coins">200</span></div>
         <button id="hud-start" type="button">Start Wave</button>
         <div class="topbar-stat topbar-medal" id="hud-medal-wrap" title="Medal if you finish now: Gold = no HP lost, Silver = 5 or less">Medal <img id="hud-medal" alt="" /></div>
         <button id="hud-speed" type="button" title="Game speed (1/2/3)" aria-label="Game speed 1x" data-speed="1"><img id="hud-speed-icon" alt="" /></button>
@@ -29,6 +29,8 @@
         </aside>
         <section class="playfield" id="playfield">
           <canvas id="game" width="960" height="528"></canvas>
+          <div class="fx-edge" id="fx-edge" aria-hidden="true"></div>
+          <div class="fx-banner" id="fx-banner" aria-live="polite" hidden><div class="fx-banner-main"></div><div class="fx-banner-sub"></div></div>
         </section>
         <aside class="panel right-panel">
           <div class="panel-scroll">
