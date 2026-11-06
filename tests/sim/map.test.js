@@ -3,7 +3,7 @@ import { maps } from '../../src/data/maps.js';
 import { loadMap } from '../../src/sim/map.js';
 import { TILE_SIZE } from '../../src/core/grid.js';
 
-const map = loadMap(maps.single_1);
+const map = loadMap(maps.single_2); // level 1's map (M1 layout)
 
 test('map is 20x11', () => {
   expect(map.w).toBe(20);
