@@ -1,4 +1,5 @@
-import { getTowerDef, towerStats } from '../sim/towers.js';
+import { getTowerDef, towerStats, towerLevel, canHitAir } from '../sim/towers.js';
+import { upgradeCostOf, sellValue, MAX_LEVEL } from '../sim/commands.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -11,46 +12,115 @@ export const REASON_TEXT = {
   game_over: 'Game over',
   wrong_phase: 'A wave is already running',
   no_more_waves: 'No more waves',
+  max_level: 'Already max level',
+  not_found: 'No such tower',
+  bad_mode: 'Unknown targeting mode',
 };
+
+const FAMILIES = [
+  ['assault', 'Assault'],
+  ['precision', 'Precision'],
+  ['explosive', 'Explosive'],
+  ['control', 'Control'],
+  ['support', 'Support'],
+  ['anti-air', 'Anti-Air'],
+];
+
+/** One line of per-tower special stats for the selected panel. */
+export function describeSpecial(tower) {
+  const lv = towerLevel(tower);
+  const out = [];
+  if (tower.def.special?.spoolUp) out.push(`Spool-up ${tower.def.special.spoolUp}s`);
+  if (lv.crit) out.push(`Crit ${Math.round(lv.crit * 100)}% (2x)`);
+  if (lv.pierce) out.push(`Pierce ${lv.pierce}`);
+  if (lv.splash) out.push(`Splash ${lv.splash} tiles`);
+  if (lv.airBonus) out.push(`+${Math.round(lv.airBonus * 100)}% vs air, 60% vs ground`);
+  if (lv.slow) out.push(`Slow ${Math.round(lv.slow * 100)}% for ${lv.slowDuration}s`);
+  if (lv.burnDps) out.push(`Burn ${lv.burnDps}/s for ${lv.burnDuration}s`);
+  if (lv.stun) out.push(`Stun ${lv.stun}s`);
+  if (lv.chains) out.push(`Chain ${lv.chains} hops, slow ${Math.round(lv.chainSlow * 100)}%`);
+  if (lv.fieldRadius) out.push(`Gas field ${lv.fieldDuration}s, slow ${Math.round(lv.fieldSlow * 100)}%`);
+  if (lv.damageBoost) out.push(`Marked +${Math.round(lv.damageBoost * 100)}% dmg taken`);
+  if (lv.armorDebuff) out.push(`Armor -${Math.round(lv.armorDebuff * 100)}%`);
+  if (lv.fireRateBoost) out.push(`Aura +${Math.round(lv.fireRateBoost * 100)}% fire rate (${lv.auraRange} tiles)`);
+  if (lv.rangeBoost) out.push(`Aura +${Math.round(lv.rangeBoost * 100)}% range (${lv.range} tiles)`);
+  if (lv.endWaveCoins) out.push(`+${lv.endWaveCoins} coins per wave`);
+  const aura = tower.aura;
+  if (aura && (aura.fireRate || aura.range)) {
+    const parts = [];
+    if (aura.fireRate) parts.push(`+${Math.round(aura.fireRate * 100)}% rate`);
+    if (aura.range) parts.push(`+${Math.round(aura.range * 100)}% range`);
+    out.push(`Boosted ${parts.join(', ')}`);
+  }
+  return out;
+}
 
 /**
  * Binds the DOM (top bar, tower list, selected panel, overlay) to world state.
  * Reads world, never mutates it; user intent goes out through callbacks.
  */
-export function createHud(sprites, { onArm, onStart, onRetry }) {
+export function createHud(sprites, { onArm, onStart, onRetry, onUpgrade, onSell, onTargeting, onSpawnTest }) {
   const el = {
     level: $('hud-level'), wave: $('hud-wave'), hp: $('hud-hp'), coins: $('hud-coins'),
-    start: $('hud-start'), msg: $('hud-msg'), list: $('hud-tower-list'),
+    start: $('hud-start'), msg: $('hud-msg'), list: $('hud-tower-list'), spawnTest: $('hud-spawn-test'),
     selName: $('hud-selected'), selRange: $('hud-range'), selDps: $('hud-dps'), selLevel: $('hud-sel-level'),
+    selDamage: $('hud-damage'), selRate: $('hud-rate'), special: $('hud-special'),
+    targeting: $('hud-targeting'), upgrade: $('hud-upgrade'), sell: $('hud-sell'),
     overlay: $('overlay'), title: $('overlay-title'), text: $('overlay-text'), retry: $('overlay-retry'),
   };
   let buttons = [];
   let msgTimer = null;
+  let specialKey = '';
 
   el.start.addEventListener('click', () => onStart());
   el.retry.addEventListener('click', () => onRetry());
+  el.upgrade.addEventListener('click', () => onUpgrade());
+  el.sell.addEventListener('click', () => onSell());
+  el.targeting.addEventListener('change', () => onTargeting(el.targeting.value));
+  el.spawnTest.addEventListener('click', () => onSpawnTest?.());
 
-  function buildTowerList(world) {
+  function buildTowerList(world, { sandbox = false } = {}) {
     el.list.textContent = '';
-    buttons = world.unlocked.map((id) => {
-      const def = getTowerDef(id);
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.dataset.id = id;
-      const img = document.createElement('img');
-      const spr = sprites[`towers/${id}_l1`];
-      if (spr) img.src = spr.src;
-      img.alt = '';
-      const name = document.createElement('span');
-      name.textContent = def.name;
-      const cost = document.createElement('span');
-      cost.className = 'cost';
-      cost.textContent = String(def.levels[0].cost);
-      b.append(img, name, cost);
-      b.addEventListener('click', () => onArm(id));
-      el.list.appendChild(b);
-      return { id, cost: def.levels[0].cost, el: b };
-    });
+    el.spawnTest.hidden = !sandbox;
+    buttons = [];
+    for (const [family, label] of FAMILIES) {
+      const ids = world.unlocked.filter((id) => getTowerDef(id)?.family === family);
+      if (!ids.length) continue;
+      const head = document.createElement('h4');
+      head.className = 'family-head';
+      head.textContent = label;
+      el.list.appendChild(head);
+      for (const id of ids) {
+        const def = getTowerDef(id);
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.id = id;
+        b.dataset.family = family;
+        const img = document.createElement('img');
+        const spr = sprites[`towers/${id}_l1`];
+        if (spr) img.src = spr.src;
+        img.alt = '';
+        const name = document.createElement('span');
+        name.className = 'name';
+        name.textContent = def.name;
+        if (canHitAir(def)) {
+          const chev = document.createElement('img');
+          chev.className = 'aa-chevron';
+          chev.alt = 'anti-air';
+          chev.title = 'Hits air units';
+          const c = sprites['ui/air_chevron'];
+          if (c) chev.src = c.src;
+          name.appendChild(chev);
+        }
+        const cost = document.createElement('span');
+        cost.className = 'cost';
+        cost.textContent = String(def.levels[0].cost);
+        b.append(img, name, cost);
+        b.addEventListener('click', () => onArm(id));
+        el.list.appendChild(b);
+        buttons.push({ id, cost: def.levels[0].cost, el: b });
+      }
+    }
   }
 
   function flash(text, ms = 2200) {
@@ -79,6 +149,57 @@ export function createHud(sprites, { onArm, onStart, onRetry }) {
     el.start.disabled = disabled;
   }
 
+  function setText(node, text) {
+    if (node.textContent !== text) node.textContent = text;
+  }
+
+  function updateSelected(world, tower) {
+    const over = world.phase === 'won' || world.phase === 'lost';
+    if (!tower) {
+      for (const n of [el.selName, el.selLevel, el.selDamage, el.selRate, el.selRange, el.selDps]) setText(n, n === el.selName ? 'None' : '-');
+      setText(el.special, '');
+      specialKey = '';
+      el.targeting.disabled = true;
+      el.upgrade.disabled = true;
+      el.sell.disabled = true;
+      setText(el.upgrade, 'Upgrade');
+      setText(el.sell, 'Sell');
+      return;
+    }
+    const s = towerStats(tower);
+    setText(el.selName, tower.def.name);
+    setText(el.selLevel, `${tower.level}/${MAX_LEVEL}`);
+    setText(el.selDamage, String(s.damage));
+    setText(el.selRate, s.baseRate > 0 ? `${s.rate.toFixed(2)}/s` : '-');
+    setText(el.selRange, s.range > 0 ? `${s.range.toFixed(1)} tiles` : '-');
+    setText(el.selDps, s.dps.toFixed(1));
+    const lines = describeSpecial(tower);
+    const key = `${tower.id}:${tower.level}:${lines.join('|')}`;
+    if (key !== specialKey) {
+      specialKey = key;
+      el.special.textContent = '';
+      for (const l of lines) {
+        const d = document.createElement('div');
+        d.textContent = l;
+        el.special.appendChild(d);
+      }
+    }
+    const attacks = s.baseRate > 0;
+    el.targeting.disabled = !attacks;
+    if (document.activeElement !== el.targeting && el.targeting.value !== tower.targeting) el.targeting.value = tower.targeting;
+
+    const cost = upgradeCostOf(world, tower);
+    if (cost === null) {
+      setText(el.upgrade, 'Max level');
+      el.upgrade.disabled = true;
+    } else {
+      setText(el.upgrade, `Upgrade to L${tower.level + 1} (${cost}${world.phase === 'wave' ? ', +15%' : ''})`);
+      el.upgrade.disabled = over || world.coins < cost;
+    }
+    setText(el.sell, `Sell (+${sellValue(world, tower)}${world.phase === 'wave' ? ', 50%' : ', 70%'})`);
+    el.sell.disabled = over;
+  }
+
   function update(world, app) {
     const total = world.waves.length;
     el.level.textContent = world.level;
@@ -93,18 +214,7 @@ export function createHud(sprites, { onArm, onStart, onRetry }) {
     }
 
     const tower = app.selectedId != null ? world.towers.find((t) => t.id === app.selectedId) : null;
-    if (tower) {
-      const s = towerStats(tower);
-      el.selName.textContent = tower.def.name;
-      el.selLevel.textContent = tower.level;
-      el.selRange.textContent = `${s.range.toFixed(1)} tiles`;
-      el.selDps.textContent = s.dps.toFixed(1);
-    } else {
-      el.selName.textContent = 'None';
-      el.selLevel.textContent = '-';
-      el.selRange.textContent = '-';
-      el.selDps.textContent = '-';
-    }
+    updateSelected(world, tower);
 
     const over = world.phase === 'won' || world.phase === 'lost';
     el.overlay.hidden = !over;

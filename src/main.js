@@ -4,7 +4,8 @@ import { createRenderer } from './render/renderer.js';
 import { createClock } from './core/time.js';
 import { levels } from './data/levels.js';
 import { createWorld, step, STEP } from './sim/world.js';
-import { canPlaceTower, placeTower, startWave } from './sim/commands.js';
+import { canPlaceTower, placeTower, startWave, upgradeTower, sellTower, setTargeting } from './sim/commands.js';
+import { createSandboxWorld, spawnTestWave } from './sim/sandbox.js';
 import { getTowerDef } from './sim/towers.js';
 import { createHud, REASON_TEXT } from './ui/hud.js';
 import { attachInput } from './ui/input.js';
@@ -14,6 +15,8 @@ function levelFromUrl() {
   // Only level 1 has waves/maps until M3; anything else falls back to 1.
   return Number.isInteger(n) && n === 1 && levels[n - 1] ? n : 1;
 }
+
+const sandbox = new URLSearchParams(location.search).get('sandbox') === '1';
 
 async function boot() {
   const sprites = await loadSprites();
@@ -31,6 +34,21 @@ async function boot() {
       if (app.armed) app.selectedId = null;
     },
     select(id) { app.selectedId = id; },
+    upgrade() {
+      if (app.selectedId == null) return;
+      const r = upgradeTower(app.world, app.selectedId);
+      if (!r.ok) hud.flash(REASON_TEXT[r.reason] ?? r.reason);
+    },
+    sell() {
+      if (app.selectedId == null) return;
+      const r = sellTower(app.world, app.selectedId);
+      if (r.ok) { app.selectedId = null; hud.flash(`Sold +${r.refund}`); }
+      else hud.flash(REASON_TEXT[r.reason] ?? r.reason);
+    },
+    setTargeting(mode) {
+      if (app.selectedId != null) setTargeting(app.world, app.selectedId, mode);
+    },
+    spawnTest: sandbox ? () => spawnTestWave(app.world) : null,
     clickTile(tx, ty, keepArmed) {
       const w = app.world;
       if (app.armed) {
@@ -55,13 +73,18 @@ async function boot() {
       else if (r.bonus > 0) hud.flash(`Early call bonus +${r.bonus}`);
     },
     onRetry: () => reset(),
+    onUpgrade: () => app.upgrade(),
+    onSell: () => app.sell(),
+    onTargeting: (m) => app.setTargeting(m),
+    onSpawnTest: () => app.spawnTest?.(),
   });
 
   function reset() {
-    app.world = createWorld(levelId, { seed: (Date.now() ^ (Math.random() * 0xffffffff)) >>> 0 });
+    const seed = (Date.now() ^ (Math.random() * 0xffffffff)) >>> 0;
+    app.world = sandbox ? createSandboxWorld(seed) : createWorld(levelId, { seed });
     app.armed = null;
     app.selectedId = null;
-    hud.buildTowerList(app.world);
+    hud.buildTowerList(app.world, { sandbox });
     if (import.meta.env.DEV) window.__td = { world: app.world, app };
   }
 
@@ -77,8 +100,9 @@ async function boot() {
     for (let i = 0; i < steps; i++) step(w, STEP);
 
     for (const ev of w.events) {
-      if (ev.type === 'waveEnd') hud.flash(`Wave cleared  +${ev.stipend} coins`);
+      if (ev.type === 'waveEnd') hud.flash(`Wave cleared  +${ev.stipend + (ev.hub || 0)} coins`);
     }
+    renderer.consume(w.events);
     w.events.length = 0;
 
     let ghost = null;

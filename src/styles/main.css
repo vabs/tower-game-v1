@@ -19,10 +19,13 @@ body {
 }
 
 #app {
+  width: 100%;
+  max-width: 1500px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px;
+  padding: 12px;
   background: #111514;
   border: 2px solid #2b2f2e;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
@@ -45,16 +48,25 @@ body {
 
 .layout {
   display: grid;
-  grid-template-columns: 220px 1fr 220px;
+  grid-template-columns: 210px minmax(0, 1fr) 230px;
   gap: 12px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .panel {
   background: rgba(20, 24, 23, 0.85);
   border: 1px solid #303634;
+  padding: 0;
+  position: relative;
+  min-width: 0;
+}
+
+/* Panels take the height of the playfield and scroll inside, so 30 towers never stretch the layout. */
+.panel-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
   padding: 12px;
-  min-height: 528px;
 }
 
 .panel h3 {
@@ -75,9 +87,12 @@ body {
 
 #game {
   display: block;
+  width: 100%;
+  max-width: 960px;
+  height: auto;
+  aspect-ratio: 960 / 528;
   background: #2a2f2d;
   image-rendering: pixelated;
-  border: 1px solid #3a403e;
 }
 
 .hud-tower-list {
@@ -156,3 +171,42 @@ body {
   font: inherit;
   cursor: pointer;
 }
+
+.family-head {
+  margin: 10px 0 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9aa59f;
+  border-bottom: 1px solid #303634;
+}
+.family-head:first-child { margin-top: 0; }
+.hud-tower-list { gap: 4px; }
+.hud-tower-list button { padding: 4px 6px; }
+.hud-tower-list button .name { display: flex; align-items: center; gap: 4px; }
+.hud-tower-list button img.aa-chevron { width: 14px; height: 14px; }
+#hud-spawn-test {
+  background: #5a3b3b;
+  color: #e6e2d3;
+  border: 1px solid #8a5c5c;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+#hud-spawn-test[hidden] { display: none; }
+#hud-sell, #hud-targeting {
+  background: #2b332f;
+  color: #e6e2d3;
+  border: 1px solid #3a403e;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+#hud-upgrade { font-family: inherit; }
+#hud-upgrade:not(:disabled) { border-color: #8be08b; }
+#hud-sell:disabled { opacity: 0.5; cursor: not-allowed; }
+.hud-special { color: #b9c9bd; font-size: 11px; display: grid; gap: 2px; }
+.hud-target { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center; }
+.topbar { flex-wrap: wrap; }

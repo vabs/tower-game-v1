@@ -14,12 +14,15 @@
         <div class="topbar-stat">HP <span id="hud-hp">25</span></div>
         <div class="topbar-stat">Coins <span id="hud-coins">200</span></div>
         <button id="hud-start" type="button">Start Wave</button>
+        <button id="hud-spawn-test" type="button" hidden title="Dev sandbox: spawn 5 grunts, 3 drones, 1 tank (N)">Test wave (N)</button>
         <div class="topbar-msg" id="hud-msg"></div>
       </header>
       <div class="layout">
         <aside class="panel left-panel">
-          <h3>Towers</h3>
-          <div class="hud-tower-list" id="hud-tower-list"></div>
+          <div class="panel-scroll">
+            <h3>Towers</h3>
+            <div class="hud-tower-list" id="hud-tower-list"></div>
+          </div>
         </aside>
         <section class="playfield" id="playfield">
           <canvas id="game" width="960" height="528"></canvas>
@@ -32,13 +35,27 @@
           </div>
         </section>
         <aside class="panel right-panel">
-          <h3>Selected</h3>
-          <div class="hud-panel">
-            <div>Name: <span id="hud-selected">None</span></div>
-            <div>Range: <span id="hud-range">-</span></div>
-            <div>DPS: <span id="hud-dps">-</span></div>
-            <div>Level: <span id="hud-sel-level">-</span></div>
-            <button id="hud-upgrade" type="button" disabled>Upgrade (soon)</button>
+          <div class="panel-scroll">
+            <h3>Selected</h3>
+            <div class="hud-panel">
+              <div>Name: <span id="hud-selected">None</span></div>
+              <div>Level: <span id="hud-sel-level">-</span></div>
+              <div>Damage: <span id="hud-damage">-</span></div>
+              <div>Rate: <span id="hud-rate">-</span></div>
+              <div>Range: <span id="hud-range">-</span></div>
+              <div>DPS: <span id="hud-dps">-</span></div>
+              <div id="hud-special" class="hud-special"></div>
+              <label class="hud-target">Target
+                <select id="hud-targeting" disabled>
+                  <option value="first">First</option>
+                  <option value="last">Last</option>
+                  <option value="closest">Closest</option>
+                  <option value="strongest">Strongest</option>
+                </select>
+              </label>
+              <button id="hud-upgrade" type="button" disabled>Upgrade</button>
+              <button id="hud-sell" type="button" disabled>Sell</button>
+            </div>
           </div>
         </aside>
       </div>
