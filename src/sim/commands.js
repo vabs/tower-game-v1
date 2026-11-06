@@ -107,7 +107,7 @@ export function sellTower(world, towerId) {
 export function setTargeting(world, towerId, mode) {
   const tower = findTower(world, towerId);
   if (!tower) return { ok: false, reason: 'not_found' };
-  if (!TARGET_MODES.includes(mode)) return { ok: false, reason: 'bad_mode' };
+  if (!TARGET_MODES.includes(mode) || (mode === 'air' && tower.def.family !== 'anti-air')) return { ok: false, reason: 'bad_mode' };
   tower.targeting = mode;
   return { ok: true };
 }

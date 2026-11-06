@@ -82,3 +82,24 @@ test('setTargeting rejects unknown modes and towers', () => {
   expect(t.targeting).toBe('first');
   run(w, 0.1);
 });
+
+test('anti-air towers default to air targeting; air mode is AA only', () => {
+  const w = sandbox();
+  const aa = place(w, 'aa_mg', 6, 3);
+  const ar = place(w, 'ar_turret', 5, 3);
+  expect(aa.targeting).toBe('air');
+  expect(ar.targeting).toBe('first');
+  expect(setTargeting(w, ar.id, 'air')).toEqual({ ok: false, reason: 'bad_mode' });
+  expect(setTargeting(w, aa.id, 'air')).toEqual({ ok: true });
+});
+
+test('air-targeting AA shoots the air unit before a ground unit closer to exit', () => {
+  const w = sandbox();
+  place(w, 'aa_mg', 6, 3);
+  const ground = enemyAt(w, 'grunt', 300);
+  const air = enemyAt(w, 'drone', 100);
+  air.x = 312; air.y = 150;
+  step(w, STEP);
+  expect(w.projectiles[0].target).toBe(air);
+  expect(ground.hp).toBe(ground.maxHp);
+});

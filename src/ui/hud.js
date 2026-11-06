@@ -190,6 +190,8 @@ export function createHud(sprites, { onArm, onStart, onPause, onUpgrade, onSell,
     }
     const attacks = s.baseRate > 0;
     el.targeting.disabled = !attacks;
+    const airOpt = el.targeting.querySelector('option[value="air"]');
+    if (airOpt) airOpt.hidden = tower.def.family !== 'anti-air';
     if (document.activeElement !== el.targeting && el.targeting.value !== tower.targeting) el.targeting.value = tower.targeting;
 
     const cost = upgradeCostOf(world, tower);

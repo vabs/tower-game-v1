@@ -9,7 +9,9 @@ export { canHitAir };
 
 const defById = new Map(towerDefs.map((d) => [d.id, d]));
 
-export const TARGET_MODES = ['first', 'last', 'closest', 'strongest'];
+export const TARGET_MODES = ['first', 'last', 'closest', 'strongest', 'air'];
+/** `air` (air first, then closest to exit) is only offered to the Anti-Air family. */
+export const defaultTargeting = (def) => (def.family === 'anti-air' ? 'air' : 'first');
 /** Gatling fire rate ramps from this fraction of full to 100% over `spoolUp` seconds. */
 export const SPOOL_START = 0.25;
 /** Width (tiles, each side) of a piercing rail shot's line. */
@@ -47,7 +49,7 @@ export function createTower(world, def, tx, ty) {
     x: tx * TILE_SIZE + TILE_SIZE / 2,
     y: ty * TILE_SIZE + TILE_SIZE / 2,
     cooldown: 0,
-    targeting: 'first',
+    targeting: defaultTargeting(def),
     spent: def.levels[0].cost,
     kills: 0,
     spool: 0,
