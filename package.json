@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "smoke": "node tools/smoke.mjs",
     "shots": "node tools/level-shots.mjs",
-    "balance": "node tools/balance.js"
+    "balance": "node tools/balance.js",
+    "smoke:dist": "vite build && node tools/smoke-dist.mjs"
   },
   "devDependencies": {
     "playwright-core": "1.65.0",
