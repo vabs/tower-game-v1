@@ -1,6 +1,8 @@
 import { TILE_SIZE } from '../core/grid.js';
 import { positionAt } from '../core/path.js';
 import { enemies as enemyDefs } from '../data/enemies.js';
+import { bosses as bossDefs } from '../data/bosses.js';
+import { levelScaling } from '../data/waves.js';
 
 /** speed 1.0 == 1.5 tiles per second (decision 2). */
 export const TILES_PER_SPEED = 1.5;
@@ -14,15 +16,28 @@ export function leakDamage(hp) {
   return 5;
 }
 
-const defById = new Map(enemyDefs.map((d) => [d.id, d]));
+const defById = new Map([...enemyDefs, ...bossDefs].map((d) => [d.id, d]));
+
+/** Choose a path per the map's `pick` rule; only consumes rng for 'random' forks. */
+function pickPath(world) {
+  const n = world.map.paths.length;
+  if (n === 1 || world.map.pick === 'first') return 0;
+  if (world.map.pick === 'random') return world.rng.int(n);
+  const i = (world.spawnCounter ?? 0) % n;
+  world.spawnCounter = (world.spawnCounter ?? 0) + 1;
+  return i;
+}
 
 /**
  * Create an enemy at the spawn point and add it to the world.
- * Air units fly a straight line spawn -> goal (decision 7).
+ * Air units fly a straight line spawn -> goal (decision 7); with several
+ * spawns the line starts at the chosen path's spawn.
  */
-export function spawnEnemy(world, defId, pathIndex = 0) {
+export function spawnEnemy(world, defId, pathIndex) {
   const def = defById.get(defId);
   if (!def) throw new Error(`unknown enemy ${defId}`);
+  if (pathIndex === undefined) pathIndex = pickPath(world);
+  const scaling = levelScaling(world.level);
   const air = def.type === 'air';
   const ground = world.map.paths[pathIndex];
   const path = air ? [ground[0], ground[ground.length - 1]] : ground;
@@ -32,11 +47,14 @@ export function spawnEnemy(world, defId, pathIndex = 0) {
   const enemy = {
     id: world.nextId++,
     defId,
-    hp: def.hp,
-    maxHp: def.hp,
-    speed: def.speed,
+    hp: def.hp * scaling.hp,
+    maxHp: def.hp * scaling.hp,
+    speed: def.speed * scaling.speed,
     coins: def.coins,
-    leak: leakDamage(def.hp),
+    leak: def.leak ?? leakDamage(def.hp),
+    boss: def.boss === true,
+    scale: def.scale ?? 1,
+    sprite: def.sprite ?? null,
     distance: 0,
     pathIndex,
     path,
