@@ -114,6 +114,7 @@ try {
   check('speed button starts at 1x', ((await page.locator('#hud-speed').textContent()) || '').trim() === '1x');
   const r1 = await simRate();
   await page.click('#hud-speed');
+  await page.waitForTimeout(100);
   check('speed button shows 2x', ((await page.locator('#hud-speed').textContent()) || '').trim() === '2x');
   const r2 = await simRate();
   await page.keyboard.press('3');
@@ -121,6 +122,7 @@ try {
   check('2x runs ~2x more sim time', r2 > r1 * 1.6, `1x=${r1.toFixed(2)} 2x=${r2.toFixed(2)}`);
   check('3x runs ~3x more sim time', r3 > r1 * 2.4, `1x=${r1.toFixed(2)} 3x=${r3.toFixed(2)}`);
   await page.click('#hud-speed');
+  await page.waitForTimeout(100);
   check('speed button wraps back to 1x', ((await page.locator('#hud-speed').textContent()) || '').trim() === '1x');
   await page.keyboard.press('1');
 
