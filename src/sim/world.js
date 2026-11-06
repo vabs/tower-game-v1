@@ -4,6 +4,7 @@ import { maps, mapIdForLevel } from '../data/maps.js';
 import { loadMap } from './map.js';
 import { buildWaves } from '../data/waves.js';
 import { updateEnemies } from './enemies.js';
+import { updateBossPhases } from './bossPhases.js';
 import { updateSpawner } from './spawner.js';
 import { updateTowers } from './towers.js';
 import { updateProjectiles } from './projectiles.js';
@@ -78,6 +79,7 @@ export function step(world, dt = STEP) {
   updateSpawner(world, dt);
   updateEffects(world, dt);
   updateEnemies(world, dt);
+  updateBossPhases(world);
   updateTowers(world, dt);
   updateProjectiles(world, dt);
   world.enemies = world.enemies.filter((e) => !e.dead);

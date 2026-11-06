@@ -68,6 +68,8 @@ export function spawnEnemy(world, defId, pathIndex) {
     status: {},
     dead: false,
     leaked: false,
+    escortsCalled: false,
+    enraged: false,
   };
   world.enemies.push(enemy);
   enemyStat(world, defId).seen++;

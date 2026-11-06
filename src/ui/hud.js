@@ -337,6 +337,9 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
       if (ev.type === 'leak') {
         restart(el.edge, 'flash', 520 / sp);
         restart(el.hpChip, 'shake', 460 / sp);
+      } else if (ev.type === 'bossPhase') {
+        if (ev.phase === 'escorts') banner('Escorts inbound!', 'The boss calls for backup', 'boss', 2000 / sp);
+        else banner('Boss enraged!', '+20% speed', 'boss', 2000 / sp);
       } else if (ev.type === 'waveStart') {
         const wave = world.waves[ev.wave];
         const n = ev.wave + 1;

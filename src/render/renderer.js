@@ -468,6 +468,15 @@ export function createRenderer(canvas, sprites) {
       ctx.globalAlpha = 1;
       if (Math.floor(tNow * 14) % 2 === 0) sprite('fx/hit_spark', ex - 12, oy - 14, 24, 24);
     }
+    if (e.enraged) {
+      // enraged boss: pulsing red tint
+      ctx.globalAlpha = 0.2 + 0.16 * Math.sin(tNow * 9);
+      ctx.fillStyle = '#ff2a1a';
+      ctx.beginPath();
+      ctx.ellipse(ex, cy, half * 0.7, half * 0.65, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
     drawMarkReticle(e, ex, cy, half, tNow);
     if (e.hp < e.maxHp || e.boss) {
       const w = e.boss ? 64 : 32;
@@ -479,6 +488,11 @@ export function createRenderer(canvas, sprites) {
       const fr = Math.max(0, Math.min(1, e.hp / e.maxHp));
       ctx.fillStyle = fr > 0.5 ? '#5ec96a' : fr > 0.25 ? '#e0c040' : '#e05050';
       ctx.fillRect(bx, by, Math.round(w * fr), h);
+      if (e.boss) {
+        // phase notches at 50% (escorts) and 25% (enrage)
+        ctx.fillStyle = '#f4f1e6';
+        for (const mark of [0.5, 0.25]) ctx.fillRect(bx + Math.round(w * mark) - 1, by - 2, 2, h + 4);
+      }
       if (st.paint) { ctx.fillStyle = '#ff5a5a'; ctx.fillRect(bx, by - 5, 5, 4); }
       if (st.armor) { ctx.fillStyle = '#ffa040'; ctx.fillRect(bx + 7, by - 5, 5, 4); }
     }
