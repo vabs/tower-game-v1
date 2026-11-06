@@ -1,0 +1,21 @@
+// Baseline balance measurements written by the Codex review (docs/plans/2026-11-06-balance-review.md).
+import {createWorld,step,STEP,startingCoins} from '../src/sim/world.js';
+import {towers} from '../src/data/towers.js';
+import {enemies} from '../src/data/enemies.js';
+import {bosses} from '../src/data/bosses.js';
+import {levelScaling} from '../src/data/waves.js';
+import {stipendForLevel} from '../src/systems/economy.js';
+import {buildSpawnQueue} from '../src/sim/spawner.js';
+import {positionAt} from '../src/core/path.js';
+import {placeTower,upgradeTower,upgradeCostOf,startWave} from '../src/sim/commands.js';
+const defs=new Map([...enemies,...bosses].map(e=>[e.id,e]));
+const chosen=[1,5,10,20,30,40,50];
+function totals(l){const w=createWorld(l),scale=levelScaling(l);let hp=0,airHp=0,kill=0,supply=0;for(const v of w.waves){supply+=v.coins??0;for(const g of v.enemies){const d=defs.get(g.id),h=d.hp*scale.hp*g.count;hp+=h;airHp+=d.type==='air'?h:0;kill+=d.coins*g.count;}}const stipend=w.waves.filter(v=>!v.supply).length*stipendForLevel(l);return{l,hp:Math.round(hp),airHp:Math.round(airHp),start:w.coins,kill,stipend,supply,total:w.coins+kill+stipend+supply,earlyMax:5*(w.waves.length-1),spawnSeconds:+w.waves.reduce((s,v)=>s+(buildSpawnQueue(v).at(-1)?.t??0),0).toFixed(2)};}
+// Deliberately simple baseline: coverage/DPS greedy, no selling or support towers.
+// Evaluate next two combat waves plus 25% of final wave; half-tile route samples.
+function options(w){const waves=w.waves.slice(w.waveIndex).filter(v=>!v.supply),groups=[...(waves[0]?.enemies??[]),...(waves[1]?.enemies??[]),...(waves.length>2?(waves.at(-1)?.enemies??[]).map(g=>({...g,count:g.count*0.25})):[])];const samples=[];for(const g of groups){const def=defs.get(g.id);for(let pi=0;pi<w.map.paths.length;pi++){const ground=w.map.paths[pi],p=def.type==='air'?[ground[0],ground.at(-1)]:ground,len=def.type==='air'?Math.hypot(p[1].x-p[0].x,p[1].y-p[0].y):w.map.pathLengths[pi];for(let d=12;d<len;d+=24){const q=positionAt(p,d);samples.push({...q,air:def.type==='air',weight:g.count*def.hp/(def.speed*len*w.map.paths.length),density:1/(g.interval*def.speed*levelScaling(w.level).speed*1.5),existing:0});}}}return samples;}
+function contribution(def,lv,x,y,p){if(p.air&&def.family!=='anti-air')return 0;if(Math.hypot(p.x-x,p.y-y)>lv.range*48)return 0;let dps=lv.damage*lv.rate*(1+(lv.crit??0));if(def.family==='anti-air')dps*=p.air?1+lv.airBonus:0.6;if(lv.splash)dps*=Math.min(3,1+2*lv.splash*p.density*0.65);if(lv.pierce)dps*=1.5;return dps;}
+function buy(w,samples){for(let n=0;n<60;n++){for(const p of samples)p.existing=w.towers.reduce((s,t)=>s+contribution(t.def,t.def.levels[t.level-1],t.x,t.y,p),0);let best=null;const score=(def,lv,x,y,cost,old)=>{let gain=0;for(const p of samples){const add=contribution(def,lv,x,y,p)-(old?contribution(def,old,x,y,p):0);gain+=p.weight*add/(35+p.existing);}return gain/cost;};for(const def of towers){if(!w.unlocked.includes(def.id)||def.family==='support'||def.family==='control'||def.levels[0].cost>w.coins)continue;const lv=def.levels[0];for(let y=0;y<w.map.h;y++)for(let x=0;x<w.map.w;x++){if(!w.map.buildable(x,y)||w.towers.some(t=>t.tx===x&&t.ty===y))continue;const value=score(def,lv,x*48+24,y*48+24,lv.cost);if(!best||value>best.value)best={value,def,x,y};}}for(const t of w.towers){const cost=upgradeCostOf(w,t);if(cost===null||cost>w.coins)continue;const value=score(t.def,t.def.levels[t.level],t.x,t.y,cost,t.def.levels[t.level-1]);if(!best||value>best.value)best={value,t};}if(!best||best.value<=0)break;if(best.t)upgradeTower(w,best.t.id);else placeTower(w,best.def.id,best.x,best.y);}}
+function bot(l,seed){const w=createWorld(l,{seed});let lastWave=-1,samples=[],nextBuy=0;while(!['won','lost'].includes(w.phase)&&w.time<1800){if(w.waveIndex!==lastWave){samples=options(w);lastWave=w.waveIndex;}if(w.phase==='build'||w.time>=nextBuy){buy(w,samples);nextBuy=w.time+2;if(w.phase==='build')startWave(w);}step(w,STEP);w.events=[];}return{l,seed,phase:w.phase,hp:w.hp,wave:w.waveIndex+1,seconds:Math.round(w.time),coins:w.coins,towerCount:w.towers.length,upgrades:w.towers.reduce((s,t)=>s+t.level-1,0)};}
+for(const l of chosen)console.log('TOTAL',JSON.stringify(totals(l)));
+if(!process.argv.includes('--totals-only'))for(const l of chosen)console.log('BOT',JSON.stringify(bot(l,42)));
