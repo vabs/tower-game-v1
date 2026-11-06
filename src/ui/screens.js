@@ -40,13 +40,24 @@ export function createScreens(sprites, on) {
     if (s) img.src = s.src;
     return img;
   };
-  const button = (label, handler, { primary = false, id, disabled = false } = {}) =>
-    h('button.btn' + (primary ? '.primary' : ''), { type: 'button', id, onclick: handler, disabled, text: label });
+  const button = (label, handler, { primary = false, id, disabled = false, iconKey = null } = {}) => {
+    const b = h('button.btn' + (primary ? '.primary' : ''), { type: 'button', id, onclick: handler, disabled });
+    if (iconKey) b.append(icon(iconKey, 'px-icon btn-icon', ''), ' ');
+    b.append(label);
+    return b;
+  };
 
-  function mount(name, box, { dim = false } = {}) {
+  function mount(name, box, { dim = false, bg = false } = {}) {
     root.textContent = '';
     root.dataset.screen = name;
     root.classList.toggle('dim', dim);
+    if (bg) {
+      // Slowly panning, dimmed menu art (480x264 source, drawn large with pixelated scaling).
+      const art = h('div.menu-bg');
+      const src = sprites['ui/menu_bg']?.src;
+      if (src) art.style.backgroundImage = `url("${src}")`;
+      root.append(art, h('div.menu-bg-dim'));
+    }
     root.append(h('div.screen-box.screen-' + name, null, ...box));
     root.hidden = false;
     current = name;
@@ -112,13 +123,13 @@ export function createScreens(sprites, on) {
     }, { id: 'btn-new' });
     mount('start', [
       h('div.title-art', icon('towers/gatling_turret_l5', 'px-icon xl'), icon('towers/rail_autocannon_l5', 'px-icon xl'), icon('towers/aa_mg_l5', 'px-icon xl')),
-      h('h1.title', { text: 'TOWER DEFENCE' }),
+      h('h1.title-logo', { 'aria-label': 'Tower Defence' }, icon('ui/title_logo', 'logo-img', 'Tower Defence')),
       h('p.subtitle', { text: '50 missions. 30 towers. Hold the line.' }),
       h('div.menu',
         progress ? button(`Continue (Level ${save.unlockedLevel})`, () => on.onContinue(), { primary: true, id: 'btn-continue' }) : null,
         newBtn,
         button('Level Select', () => on.onLevelSelect(), { id: 'btn-levels', primary: !progress })),
-    ], { dim: false });
+    ], { dim: false, bg: true });
   }
 
   // ---- Level Select ----
@@ -142,7 +153,9 @@ export function createScreens(sprites, on) {
           disabled: !unlocked, onclick: () => on.onStartLevel(id),
         },
         h('span.lvl-num', { text: String(id) }),
-        h('span.lvl-badge', unlocked ? (medal ? icon(`ui/medal_${medal}`, 'px-icon sm', MEDAL_LABEL[medal]) : null) : icon('ui/lock', 'px-icon sm', 'locked')),
+        h('span.lvl-badge', unlocked
+          ? icon(medal ? `ui/medal_${medal}` : 'ui/medal_empty', 'px-icon', medal ? MEDAL_LABEL[medal] : 'no medal')
+          : icon('ui/lock', 'px-icon', 'locked')),
         h('span.lvl-tags',
           lv.boss ? h('span.tag.boss', { text: 'BOSS' }) : null,
           lv.supplyDropAfterWave != null ? icon('ui/crate', 'px-icon xs', 'supply drop') : null));
@@ -154,7 +167,7 @@ export function createScreens(sprites, on) {
       h('div.screen-head',
         h('h2', { text: 'Level Select' }),
         h('div.medal-count',
-          ...['gold', 'silver', 'bronze'].map((m) => h('span', icon(`ui/medal_${m}`, 'px-icon sm', m), ` ${summary[m]}`))),
+          ...['gold', 'silver', 'bronze'].map((m) => h('span', icon(`ui/medal_${m}`, 'px-icon', m), ` ${summary[m]}`))),
         button('Back', () => on.onToStart(), { id: 'btn-back' })),
       h('div.chapters', ...rows),
       h('p.legend.muted', 'BOSS = boss wave. Crate = supply drop wave. Gold: no HP lost. Silver: 5 or less.'),
@@ -167,7 +180,7 @@ export function createScreens(sprites, on) {
       h('h2', { text: 'Paused' }),
       h('p.muted', { text: `Level ${world.level}  Wave ${Math.min(world.waveIndex + 1, world.waves.length)}/${world.waves.length}  HP ${world.hp}/${world.maxHp}  Coins ${world.coins}` }),
       h('div.btn-row',
-        button('Resume', () => on.onResume(), { primary: true, id: 'btn-resume' }),
+        button('Resume', () => on.onResume(), { primary: true, id: 'btn-resume', iconKey: 'ui/play' }),
         button('Restart', () => on.onRestart(), { id: 'btn-restart' }),
         button('Level Select', () => on.onLevelSelect(), { id: 'btn-levels' })),
       analyticsPanels(world),
@@ -181,7 +194,7 @@ export function createScreens(sprites, on) {
         : `Silver needs ${SILVER_MAX_HP_LOST} or less HP lost, Gold none.`;
     mount('level-complete', [
       h('h2', { text: `Level ${world.level} Cleared` }),
-      h('div.medal-big', { 'data-medal': medal }, icon(`ui/medal_${medal}`, 'px-icon xl', MEDAL_LABEL[medal]),
+      h('div.medal-big', { 'data-medal': medal }, icon(`ui/medal_${medal}_lg`, 'px-icon lg', MEDAL_LABEL[medal]),
         h('div.medal-name', { text: `${MEDAL_LABEL[medal]} Medal${improved ? '  (new best)' : ''}` })),
       hint ? h('p.muted', { text: hint }) : null,
       h('div.stat-row',

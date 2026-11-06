@@ -244,6 +244,8 @@ body {
 .px-icon.sm { width: 20px; height: 20px; }
 .px-icon.md { width: 36px; height: 36px; }
 .px-icon.xl { width: 72px; height: 72px; }
+.px-icon.lg { width: 96px; height: 96px; }
+.btn-icon { margin: -4px 4px -4px 0; }
 .menu { display: grid; gap: 10px; width: min(100%, 320px); margin: 8px auto 0; }
 .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 .btn {
@@ -270,7 +272,7 @@ body {
 .lvl {
   position: relative;
   display: grid;
-  grid-template-rows: auto 22px 14px;
+  grid-template-rows: auto 26px 14px;
   justify-items: center;
   gap: 1px;
   padding: 5px 2px;
@@ -294,7 +296,7 @@ body {
 .stat b { font-size: 18px; color: #e0c040; }
 .stat span { font-size: 10px; text-transform: uppercase; color: #9aa59f; }
 .medal-big { display: grid; justify-items: center; gap: 4px; }
-.medal-big .px-icon { width: 96px; height: 96px; }
+
 .medal-name { font-size: 16px; text-transform: uppercase; letter-spacing: 0.08em; }
 .medal-big[data-medal="gold"] .medal-name { color: #e0c040; }
 .medal-big[data-medal="silver"] .medal-name { color: #c9d1d6; }
@@ -323,3 +325,31 @@ body {
   .an-panels { grid-template-columns: 1fr; }
   .title { font-size: 26px; }
 }
+
+/* ---- start screen art ---- */
+.screens[data-screen="start"] { overflow: hidden; }
+.menu-bg {
+  position: absolute;
+  inset: -6%;
+  background-size: cover;
+  background-position: 0 50%;
+  image-rendering: pixelated;
+  animation: menu-pan 70s ease-in-out infinite alternate;
+  filter: saturate(0.8);
+}
+.menu-bg-dim { position: absolute; inset: 0; background: radial-gradient(circle at 50% 45%, rgba(8, 10, 9, 0.55), rgba(8, 10, 9, 0.88)); }
+@keyframes menu-pan {
+  from { transform: translate3d(-3%, -1%, 0) scale(1.04); }
+  to { transform: translate3d(3%, 1%, 0) scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) { .menu-bg { animation: none; } }
+.screens[data-screen="start"] .screen-box { position: relative; background: rgba(26, 32, 30, 0.82); }
+.title-logo { margin: 0; display: flex; justify-content: center; }
+.logo-img { width: min(100%, 640px); height: auto; image-rendering: pixelated; }
+.lvl-badge { display: flex; align-items: center; justify-content: center; }
+
+/* ---- top bar icons ---- */
+#hud-speed, #hud-pause { display: inline-flex; align-items: center; gap: 4px; }
+#hud-speed img, #hud-pause img { width: 24px; height: 24px; image-rendering: pixelated; margin: -4px 0; }
+.topbar-medal { display: inline-flex; align-items: center; gap: 4px; }
+.topbar-medal img { width: 24px; height: 24px; image-rendering: pixelated; margin: -4px 0; }

@@ -4,6 +4,7 @@ import { levels, getUnlocksForLevel } from '../data/levels.js';
 import { enemies } from '../data/enemies.js';
 import { bosses, BOSS_SEQUENCE } from '../data/bosses.js';
 import { INTRODUCED_AT } from '../data/waves.js';
+import { medalFor } from '../core/medals.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -70,8 +71,10 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     selName: $('hud-selected'), selRange: $('hud-range'), selDps: $('hud-dps'), selLevel: $('hud-sel-level'),
     selDamage: $('hud-damage'), selRate: $('hud-rate'), special: $('hud-special'),
     targeting: $('hud-targeting'), upgrade: $('hud-upgrade'), sell: $('hud-sell'),
-    pause: $('hud-pause'), speed: $('hud-speed'), brief: $('hud-brief'), unlock: $('hud-unlock'),
+    pause: $('hud-pause'), speed: $('hud-speed'), speedIcon: $('hud-speed-icon'), pauseIcon: $('hud-pause-icon'), medal: $('hud-medal'), brief: $('hud-brief'), unlock: $('hud-unlock'),
   };
+  const setSrc = (img, key) => { const sp = sprites[key]; if (sp && img.getAttribute('src') !== sp.src) img.src = sp.src; };
+  setSrc(el.pauseIcon, 'ui/pause');
   let buttons = [];
   let msgTimer = null;
   let specialKey = '';
@@ -214,7 +217,13 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     el.hp.textContent = `${world.hp}/${world.maxHp}`;
     el.coins.textContent = world.coins;
     updateStart(world);
-    setText(el.speed, `${app.speed ?? 1}x`);
+    const sp = app.speed ?? 1;
+    setSrc(el.speedIcon, `ui/speed_${sp}x`);
+    if (el.speed.dataset.speed !== String(sp)) {
+      el.speed.dataset.speed = String(sp);
+      el.speed.setAttribute('aria-label', `Game speed ${sp}x`);
+    }
+    setSrc(el.medal, `ui/medal_${medalFor(world.stats.hpLost)}`);
 
     for (const b of buttons) {
       b.el.disabled = world.coins < b.cost;

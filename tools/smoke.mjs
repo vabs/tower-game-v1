@@ -37,6 +37,8 @@ try {
   await waitScreen('start');
   check('start screen visible', (await screen()) === 'start');
   check('no Continue on a fresh save', (await page.locator('#btn-continue').count()) === 0);
+  check('start screen shows the logo sprite', (await page.locator('.screen-start img.logo-img').count()) === 1 && (await page.locator('.screen-start .title').count()) === 0);
+  check('start screen has the panning menu background', (await page.locator('.menu-bg').count()) === 1);
   await page.screenshot({ path: `${outDir}/00a-start.png` });
 
   await page.click('#btn-levels');
@@ -111,11 +113,11 @@ try {
     const b = await page.evaluate(() => window.__td.world.time);
     return b - a;
   };
-  check('speed button starts at 1x', ((await page.locator('#hud-speed').textContent()) || '').trim() === '1x');
+  check('speed button starts at 1x', (await page.locator('#hud-speed').getAttribute('data-speed')) === '1');
   const r1 = await simRate();
   await page.click('#hud-speed');
   await page.waitForTimeout(100);
-  check('speed button shows 2x', ((await page.locator('#hud-speed').textContent()) || '').trim() === '2x');
+  check('speed button shows 2x', (await page.locator('#hud-speed').getAttribute('data-speed')) === '2');
   const r2 = await simRate();
   await page.keyboard.press('3');
   const r3 = await simRate();
@@ -123,7 +125,7 @@ try {
   check('3x runs ~3x more sim time', r3 > r1 * 2.4, `1x=${r1.toFixed(2)} 3x=${r3.toFixed(2)}`);
   await page.click('#hud-speed');
   await page.waitForTimeout(100);
-  check('speed button wraps back to 1x', ((await page.locator('#hud-speed').textContent()) || '').trim() === '1x');
+  check('speed button wraps back to 1x', (await page.locator('#hud-speed').getAttribute('data-speed')) === '1');
   await page.keyboard.press('1');
 
   // ---- window blur / hidden tab auto-pauses an active level ----
