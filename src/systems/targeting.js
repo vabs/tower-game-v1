@@ -1,16 +1,17 @@
+const KEYS = {
+  first: (e) => e.distance,
+  last: (e) => -e.distance,
+  strongest: (e) => e.hp,
+};
+
 export function selectTarget(tower, enemies, mode = 'first') {
-  const inRange = enemies.filter(e => {
-    const dx = e.x - tower.x;
-    const dy = e.y - tower.y;
-    return Math.hypot(dx, dy) <= tower.range;
-  });
-  if (inRange.length === 0) return null;
-  if (mode === 'closest') {
-    return inRange.sort((a, b) => {
-      const da = Math.hypot(a.x - tower.x, a.y - tower.y);
-      const db = Math.hypot(b.x - tower.x, b.y - tower.y);
-      return da - db;
-    })[0];
-  }
-  return inRange[0];
+  const dist = (e) => Math.hypot(e.x - tower.x, e.y - tower.y);
+  const candidates = enemies.filter(
+    (e) => (!e.air || tower.canHitAir) && dist(e) <= tower.range
+  );
+  if (candidates.length === 0) return null;
+  const score = mode === 'closest' ? (e) => -dist(e) : KEYS[mode] ?? KEYS.first;
+  let best = candidates[0];
+  for (const e of candidates) if (score(e) > score(best)) best = e;
+  return best;
 }
