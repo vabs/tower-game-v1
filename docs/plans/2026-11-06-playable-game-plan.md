@@ -61,14 +61,15 @@ The design doc leaves these open. Each default is the simplest thing that works.
 10. **Upgrade pricing.** The `cost` on level N is the price to reach level N.
     "In combat" = a wave is active → +15% (existing `upgradeCost`). Build phase = base price.
 11. **Selling** (not in design, added): refund 70% of total spent in build phase, 50% during a wave.
-12. **Leak damage.** Enemy HP < 100 → 1, < 200 → 2, < 300 → 3, < 400 → 4, else 5. Bosses → 25 (deviation:
+12. **Base HP = 25** (changed from design's 100 in M1: at 100, Level 1 was unlosable with no towers).
+    **Leak damage.** Enemy HP < 100 → 1, < 200 → 2, < 300 → 3, < 400 → 4, else 5. Bosses → 25 (deviation:
     design says 1–5, but a boss leaking for 5 makes boss waves trivial).
 13. **Bosses.** Derived, not new data: `heavy_boss` = Heavy × 12 HP, 1.5× sprite size, 0.8× speed.
     `final_boss` = Bulldozer boss then Sky Tank boss in the last wave.
 14. **Armor Breaker.** Enemies have no armor stat, so "−6% armor" is treated as +6% damage taken,
     stacking additively with Target Painter.
 15. **Starting coins.** `200 + 25 × (level − 1)`, kept in one function so balance pass can tune it.
-16. **Medals.** Gold = 0 HP lost, Silver = ≤ 10 HP lost, Bronze = cleared.
+16. **Medals.** Gold = 0 HP lost, Silver = ≤ 5 HP lost, Bronze = cleared.
 17. **Save.** `localStorage` key `td-save-v1`: highest unlocked level, best medal per level.
     Level N+1 unlocks when N is cleared. Towers unlock per `levels.js` `unlocks` (cumulative).
 18. **Build: Vite + `vite-plugin-singlefile`.** Dev: `npm run dev` (HMR). Release: `npm run build`
@@ -298,6 +299,9 @@ in `world.stats`; pause/end screens use existing `summarizeTowerStats/EnemyStats
 unlocked tower near the path each build phase; runs all 50 levels, prints HP left per level.
 Tune `startingCoins`, wave budgets, leak damage until the bot clears ~70% of levels
 (a human should do better). Add L1–L10 "bot wins" as a regression test.
+**5.5 Browser smoke test**: `npm run smoke` (tools/smoke.mjs, playwright-core + local Chrome) drives the
+real page: place, select, start wave, finish level, no console errors. Extend it each milestone.
+
 **5.4 Docs**: update `docs/context.md` and add `README.md` (`npm install`, `npm run dev`,
 `npm test`, `npm run build` → double-click `dist/index.html`; sandbox URL; regenerating sprites).
 
