@@ -10,7 +10,7 @@ const cost0 = (id) => towers.find((t) => t.id === id).levels[0].cost;
 
 test('fresh world has empty stats', () => {
   const w = createWorld(1);
-  expect(w.stats).toEqual({ towers: {}, enemies: {}, hpLost: 0 });
+  expect(w.stats).toEqual({ towers: {}, enemies: {}, hpLost: 0, contract: { placed: 0, families: [], maxLevel: 0, sold: 0, usedAntiAir: false } });
 });
 
 test('placing and upgrading accumulates coins spent per tower', () => {

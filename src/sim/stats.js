@@ -7,11 +7,25 @@
 
 /** @returns {Stats} */
 export function createStats() {
-  return { towers: {}, enemies: {}, hpLost: 0 };
+  return { towers: {}, enemies: {}, hpLost: 0, contract: { placed: 0, families: [], maxLevel: 0, sold: 0, usedAntiAir: false } };
 }
 
 export function registerTower(world, tower) {
   world.stats.towers[tower.id] = { id: tower.id, typeId: tower.typeId, damage: 0, kills: 0, spent: tower.spent };
+  const c = world.stats.contract;
+  c.placed++;
+  const family = tower.def.family;
+  if (!c.families.includes(family)) c.families.push(family);
+  if (family === 'anti-air') c.usedAntiAir = true;
+  c.maxLevel = Math.max(c.maxLevel, tower.level);
+}
+
+/** Contract tracker hooks (see contracts.js). */
+export function trackUpgrade(world, level) {
+  world.stats.contract.maxLevel = Math.max(world.stats.contract.maxLevel, level);
+}
+export function trackSell(world) {
+  world.stats.contract.sold++;
 }
 
 export function enemyStat(world, defId) {
