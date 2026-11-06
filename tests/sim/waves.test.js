@@ -85,7 +85,7 @@ test('levelScaling', () => {
   expect(levelScaling(50).speed).toBeCloseTo(1.05);
   expect(LEVEL_TUNE).toHaveLength(50);
   expect(BOSS_TUNE).toHaveLength(50);
-  for (const v of [...LEVEL_TUNE, ...BOSS_TUNE]) expect(v).toBeGreaterThan(0.3);
+  for (const v of [...LEVEL_TUNE, ...BOSS_TUNE]) expect(v).toBeGreaterThan(0.15); // autotune clamps at 0.15
 });
 
 test('spawnEnemy applies scaling and boss stats', () => {

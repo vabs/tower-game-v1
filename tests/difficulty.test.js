@@ -10,18 +10,18 @@ const hpOf = (diff, level = 3) => {
   return spawnEnemy(w, 'grunt');
 };
 
-test('enemy HP scales with difficulty (Recruit x0.75, Veteran x1.10)', () => {
+test('enemy HP scales with difficulty (Recruit x0.75, Veteran x1.40)', () => {
   const base = hpOf('regular').maxHp;
   expect(base).toBeCloseTo(80 * levelScaling(3).hp);
   expect(hpOf('recruit').maxHp).toBeCloseTo(base * 0.75);
-  expect(hpOf('veteran').maxHp).toBeCloseTo(base * 1.1);
+  expect(hpOf('veteran').maxHp).toBeCloseTo(base * 1.4);
   expect(hpOf(undefined).maxHp).toBeCloseTo(base);
   expect(hpOf('nonsense').maxHp).toBeCloseTo(base);
 });
 
 test('bosses scale too', () => {
   const mk = (d) => { const w = createWorld(10, { difficulty: d }); return spawnEnemy(w, 'heavy_boss').maxHp; };
-  expect(mk('veteran') / mk('regular')).toBeCloseTo(1.1);
+  expect(mk('veteran') / mk('regular')).toBeCloseTo(1.4);
 });
 
 test('starting coins: Recruit +25%, others unchanged; explicit coins win', () => {
@@ -36,7 +36,7 @@ test('leak damage is the same on every difficulty', () => {
     const e = hpOf(d);
     expect(e.leak).toBe(leakDamage(80));
   }
-  expect(DIFFICULTIES.veteran.hpMult).toBe(1.1);
+  expect(DIFFICULTIES.veteran.hpMult).toBe(1.4);
   expect(getDifficulty('regular').hpMult).toBe(1);
 });
 

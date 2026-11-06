@@ -1,5 +1,5 @@
 // Balance bot CLI:
-//   npm run balance [-- --levels 1-50 --seeds 3 --profile greedy|human --difficulty recruit|regular|veteran --json]
+//   npm run balance [-- --levels 1-50 --seeds 3 --profile greedy|human --difficulty recruit|regular|veteran --seed0 1 --json]
 // greedy = the strong bot (mid-wave actions, best placements, tuned targeting); human = the human proxy
 // (build-phase purchases only, ~70% placements, "first" targeting). Deterministic per seed.
 import { runBot, HUMAN_PROFILE } from './balance-bot.js';
@@ -16,6 +16,7 @@ const profile = arg('profile', 'greedy');
 if (!['greedy', 'human'].includes(profile)) throw new Error(`unknown --profile ${profile}`);
 const difficulty = arg('difficulty', 'regular');
 const seeds = Number(arg('seeds', profile === 'human' ? 10 : 3));
+const seed0 = Number(arg('seed0', 1)); // first seed (use e.g. --seed0 101 to validate on unseen seeds)
 const asJson = process.argv.includes('--json');
 const opts = { ...(profile === 'human' ? HUMAN_PROFILE : {}), difficulty };
 
@@ -39,7 +40,7 @@ if (!asJson) {
 }
 for (let level = first; level <= last; level++) {
   const runs = [];
-  for (let seed = 1; seed <= seeds; seed++) runs.push(runBot(level, seed, opts));
+  for (let seed = seed0; seed < seed0 + seeds; seed++) runs.push(runBot(level, seed, opts));
   const wins = runs.filter((r) => r.won);
   const lost = runs.filter((r) => !r.won);
   const hpAll = runs.map((r) => (r.won ? r.hp / r.maxHp : 0) * 100); // losses count as 0

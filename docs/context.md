@@ -31,7 +31,10 @@ The simulation is pure and deterministic (fixed step 1/60 s, seeded RNG, no DOM,
 - Upgrade costs follow one formula: every upgrade buys 85% of the power per coin of a fresh L1 of the same tower.
 
 ## UI additions (gameplay pass 1)
-Next-wave preview card (`ui/wavePreview.js`), tower tooltips and upgrade deltas (`ui/towerInfo.js`), aura highlight/buff pips/mark reticles, floating coin text, leak flash, wave/boss/supply banners, hotkeys (`ui/hotkeys.js`: Space, U, S/Delete, T, Tab), and Recruit/Regular/Veteran difficulty (`core/difficulty.js`, world option `difficulty`; Veteran HP x1.10, Recruit HP x0.75 and +25% coins; saved in the save file, missing means Regular).
+Next-wave preview card (`ui/wavePreview.js`), tower tooltips and upgrade deltas (`ui/towerInfo.js`), aura highlight/buff pips/mark reticles, floating coin text, leak flash, wave/boss/supply banners, hotkeys (`ui/hotkeys.js`: Space, U, S/Delete, T, Tab), and Recruit/Regular/Veteran difficulty (`core/difficulty.js`, world option `difficulty`; Veteran HP x1.40, Recruit HP x0.75 and +25% coins; saved in the save file, missing means Regular).
+
+## Gameplay pass 2
+Human-proxy bot profile (`tools/balance-bot.js` options `buildOnly`, `placement`, `firstOnly`, `difficulty`; `HUMAN_PROFILE`), `tools/balance.js --profile human --difficulty --seed0`, parallel `tools/sweep.mjs`, autotune fitting both profiles (see the Follow-up in `docs/plans/2026-11-06-difficulty-review.md`; Veteran is HP x1.40). Boss phases (`sim/bossPhases.js`: escorts below 50% HP, enrage +20% speed below 25%, `bossPhase` events). Optional contracts (`sim/contracts.js`, tracker in `world.stats.contract`, save field `contracts`). The mission card in the right panel folds away once wave 1 starts, so the right panel has no hidden overflow at 1280x720 (smoke asserts it).
 
 ## How to run
 - `npm install`, `npm run dev`
