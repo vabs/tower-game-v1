@@ -4,6 +4,7 @@ import { snapshotStats } from '../sim/stats.js';
 import { summarizeTowerStats, summarizeEnemyStats } from './analytics.js';
 import { isLevelUnlocked, hasProgress, summarizeCampaign } from '../core/save.js';
 import { SILVER_MAX_HP_LOST } from '../core/medals.js';
+import { CONTROLS } from './hotkeys.js';
 
 const CHAPTERS = ['Recon', 'Frontline', 'Breakthrough', 'Siege', 'Final Stand'];
 export const MEDAL_LABEL = { gold: 'Gold', silver: 'Silver', bronze: 'Bronze' };
@@ -183,6 +184,9 @@ export function createScreens(sprites, on) {
         button('Resume', () => on.onResume(), { primary: true, id: 'btn-resume', iconKey: 'ui/play' }),
         button('Restart', () => on.onRestart(), { id: 'btn-restart' }),
         button('Level Select', () => on.onLevelSelect(), { id: 'btn-levels' })),
+      h('section.an-panel.controls', { 'data-panel': 'controls' },
+        h('h3', { text: 'Controls' }),
+        h('div.controls-grid', ...CONTROLS.flatMap(([k, d]) => [h('kbd', { text: k }), h('span', { text: d })]))),
       analyticsPanels(world),
     ], { dim: true });
   }

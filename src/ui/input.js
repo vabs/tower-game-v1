@@ -1,4 +1,5 @@
 import { TILE_SIZE } from '../core/grid.js';
+import { routeKey } from './hotkeys.js';
 
 /**
  * Canvas mouse + keyboard -> app intents.
@@ -29,8 +30,13 @@ export function attachInput(canvas, app) {
   window.addEventListener('keydown', (e) => {
     const tag = e.target?.tagName;
     if (tag === 'SELECT' || tag === 'INPUT' || tag === 'TEXTAREA') return;
-    if ((e.key === 'n' || e.key === 'N') && app.spawnTest) app.spawnTest();
-    if (e.key === 'Escape') app.escape();
-    if (e.key === '1' || e.key === '2' || e.key === '3') app.setSpeed?.(Number(e.key));
+    const action = routeKey(e, { screen: app.screen?.() ?? 'playing', sandbox: !!app.spawnTest });
+    if (!action) return;
+    if (action.type !== 'escape' || e.key === 'Tab') e.preventDefault();
+    app.handleAction(action);
+  });
+  // Space must not also "click" a focused button on key release.
+  window.addEventListener('keyup', (e) => {
+    if (e.key === ' ' && e.target?.tagName === 'BUTTON' && (app.screen?.() ?? 'playing') === 'playing') e.preventDefault();
   });
 }

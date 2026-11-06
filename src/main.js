@@ -5,11 +5,12 @@ import { createClock } from './core/time.js';
 import { levels } from './data/levels.js';
 import { snapshotStats } from './sim/stats.js';
 import { createWorld, step, STEP } from './sim/world.js';
-import { canPlaceTower, placeTower, startWave, upgradeTower, sellTower, setTargeting } from './sim/commands.js';
+import { canPlaceTower, placeTower, startWave, upgradeTower, sellTower, setTargeting, sellValue } from './sim/commands.js';
 import { createSandboxWorld, spawnTestWave } from './sim/sandbox.js';
 import { getTowerDef } from './sim/towers.js';
 import { createHud, REASON_TEXT } from './ui/hud.js';
 import { attachInput } from './ui/input.js';
+import { sellDecision, nextTargeting, nextTowerId } from './ui/hotkeys.js';
 import { createScreens } from './ui/screens.js';
 import { createStateMachine } from './game/state.js';
 import { loadSave, writeSave, clearSave, recordClear, isLevelUnlocked, MAX_LEVEL } from './core/save.js';
@@ -83,6 +84,40 @@ async function boot() {
     },
     setSpeed(n) { if (n === 1 || n === 2 || n === 3) app.speed = n; },
     cycleSpeed() { app.speed = app.speed >= 3 ? 1 : app.speed + 1; },
+    screen: () => sm.current,
+    startWave() {
+      const r = startWave(app.world);
+      if (!r.ok) hud.flash(REASON_TEXT[r.reason] ?? r.reason);
+      else if (r.bonus > 0) hud.flash(`Early call bonus +${r.bonus}`);
+    },
+    pendingSell: null,
+    sellHotkey() {
+      const t = app.world.towers.find((tw) => tw.id === app.selectedId);
+      if (!t) return hud.flash('Select a tower first');
+      const d = sellDecision(app.pendingSell, t.id, performance.now(), app.world.phase === 'wave');
+      app.pendingSell = d.pending;
+      if (d.sell) app.sell();
+      else hud.flash(`Press S again to sell ${t.def.name} (+${sellValue(app.world, t)})`, 1500);
+    },
+    cycleTarget() {
+      const t = app.world.towers.find((tw) => tw.id === app.selectedId);
+      if (!t) return;
+      const mode = nextTargeting(t);
+      setTargeting(app.world, t.id, mode);
+      hud.flash(`Targeting: ${mode}`, 1200);
+    },
+    handleAction(a) {
+      if (a.type === 'escape') app.escape();
+      else if (a.type === 'startWave') app.startWave();
+      else if (a.type === 'upgrade') { if (app.selectedId == null) hud.flash('Select a tower first'); else app.upgrade(); }
+      else if (a.type === 'sell') app.sellHotkey();
+      else if (a.type === 'cycleTarget') app.cycleTarget();
+      else if (a.type === 'selectNext') {
+        const id = nextTowerId(app.world.towers, app.selectedId, a.reverse);
+        if (id != null) { app.armed = null; app.selectedId = id; }
+      } else if (a.type === 'speed') app.setSpeed(a.value);
+      else if (a.type === 'spawnTest') app.spawnTest?.();
+    },
     spawnTest: sandbox ? () => spawnTestWave(app.world) : null,
     clickTile(tx, ty, keepArmed) {
       const w = app.world;
@@ -102,11 +137,7 @@ async function boot() {
 
   const hud = createHud(sprites, {
     onArm: (id) => app.arm(id),
-    onStart: () => {
-      const r = startWave(app.world);
-      if (!r.ok) hud.flash(REASON_TEXT[r.reason] ?? r.reason);
-      else if (r.bonus > 0) hud.flash(`Early call bonus +${r.bonus}`);
-    },
+    onStart: () => app.startWave(),
     onPause: () => app.pause(),
     onSpeed: () => app.cycleSpeed(),
     onUpgrade: () => app.upgrade(),

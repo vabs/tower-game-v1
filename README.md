@@ -26,15 +26,20 @@ In dev builds the running state is exposed as `window.__td` (`world`, `app`, `sm
 
 | Input | Action |
 |---|---|
-| Click a tower button, then click a tile | Place a tower |
+| Click a tower button, then click a tile | Place a tower (hover a button for stats) |
 | Shift + click | Keep the tower armed and place several |
 | Click a placed tower | Select it (upgrade, sell, targeting) |
 | Right click | Cancel placement |
-| Esc | Cancel placement, otherwise pause / resume |
+| Space | Start the next wave, or call it early |
+| U | Upgrade the selected tower |
+| S or Delete | Sell the selected tower (press twice within 1.5 s during a wave) |
+| T | Cycle targeting of the selected tower |
+| Tab (Shift+Tab) | Select next (previous) tower |
 | 1 / 2 / 3 | Game speed 1x / 2x / 3x (the top-bar button cycles too) |
+| Esc | Cancel placement, otherwise pause / resume |
 | N | Sandbox only: spawn a test wave |
 
-The game pauses by itself when the window loses focus or the tab is hidden during a level. Early-calling the next wave during the countdown pays a small bonus.
+The same list is on the pause screen. The game pauses by itself when the window loses focus or the tab is hidden during a level. Early-calling the next wave during the countdown pays a small bonus.
 
 ## Balance bot
 

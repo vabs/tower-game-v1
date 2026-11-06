@@ -96,8 +96,17 @@ try {
   check('sell button shows the refund', /Sell \(\+\d+/.test((await page.locator('#hud-sell').textContent()) || ''));
   await page.screenshot({ path: `${outDir}/03-selected.png` });
 
-  await page.click('#hud-start');
+  await page.keyboard.press('u');
+  await page.waitForTimeout(100);
+  const lvU = await page.evaluate(() => window.__td.world.towers.find((t) => t.id === window.__td.app.selectedId)?.level);
+  check('U upgrades the selected tower', lvU === 2, `level=${lvU}`);
+  await page.keyboard.press('t');
+  check('T cycles targeting', (await page.evaluate(() => window.__td.world.towers.find((t) => t.id === window.__td.app.selectedId)?.targeting)) === 'last');
+  await page.keyboard.press('Tab');
+  check('Tab selects the next tower', (await page.evaluate(() => window.__td.app.selectedId)) !== (await page.evaluate(() => window.__td.world.towers[0].id)));
+  await page.keyboard.press('Space');
   await page.waitForTimeout(300);
+  check('Space starts the wave', (await page.evaluate(() => window.__td.world.phase)) === 'wave');
   check('wave banner shows at wave start', (await page.locator('#fx-banner').isVisible()) && /Wave 1/.test((await page.locator('#fx-banner').textContent()) || ''));
   await page.screenshot({ path: `${outDir}/03b-wave-banner.png` });
   await page.waitForTimeout(5700);
@@ -119,6 +128,7 @@ try {
   check('pause shows Enemy Intel', (await page.locator('[data-panel="enemies"] .intel-card').count()) >= 1);
   const dmg = await page.locator('[data-panel="towers"] tbody tr').first().locator('td').nth(1).textContent();
   check('tower damage recorded', Number(dmg) > 0, `damage=${dmg}`);
+  check('pause screen lists controls', (await page.locator('[data-panel="controls"] kbd').count()) >= 8);
   await page.screenshot({ path: `${outDir}/04b-paused.png` });
   await page.keyboard.press('Escape');
   await page.waitForFunction(() => document.getElementById('screens').hidden);

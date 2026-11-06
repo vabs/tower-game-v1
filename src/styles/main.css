@@ -436,3 +436,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .chip-hp.shake { animation: none; }
 }
+
+.controls { text-align: left; }
+.controls-grid { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; font-size: 11px; color: #b9c9bd; }
+.controls-grid kbd { color: #e0c040; font-family: inherit; }
+@media (min-width: 900px) { .controls-grid { grid-template-columns: max-content 1fr max-content 1fr; } }
