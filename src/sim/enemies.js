@@ -49,8 +49,8 @@ export function spawnEnemy(world, defId, pathIndex) {
   const enemy = {
     id: world.nextId++,
     defId,
-    hp: def.hp * scaling.hp,
-    maxHp: def.hp * scaling.hp,
+    hp: def.hp * scaling.hp * (def.boss ? scaling.boss : 1),
+    maxHp: def.hp * scaling.hp * (def.boss ? scaling.boss : 1),
     speed: def.speed * scaling.speed,
     coins: def.coins,
     leak: def.leak ?? leakDamage(def.hp),

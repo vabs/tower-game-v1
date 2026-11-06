@@ -1,7 +1,8 @@
 import { enemies } from './enemies.js';
 
 /** Decision 13/12: bosses are derived from regular enemies. */
-export const BOSS_HP_MULT = 12;
+/** Boss HP as a multiple of the base enemy (review: 12x walled the economy). Air bosses get less: only AA can hurt them. */
+export const BOSS_HP_MULT = { ground: 6, air: 4 };
 export const BOSS_SPEED_MULT = 0.8;
 export const BOSS_COIN_MULT = 10;
 export const BOSS_LEAK_DAMAGE = 25;
@@ -14,7 +15,7 @@ export const bosses = Object.entries(BASES).map(([id, baseId]) => {
     id,
     name: `${b.name} Boss`,
     type: b.type,
-    hp: b.hp * BOSS_HP_MULT,
+    hp: b.hp * BOSS_HP_MULT[b.type],
     speed: b.speed * BOSS_SPEED_MULT,
     coins: b.coins * BOSS_COIN_MULT,
     leak: BOSS_LEAK_DAMAGE,

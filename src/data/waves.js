@@ -33,11 +33,12 @@ export const INTRODUCED_AT = {
 };
 
 const hpOf = new Map([...enemies, ...bosses].map((d) => [d.id, d.hp]));
+const typeOf = new Map([...enemies, ...bosses].map((d) => [d.id, d.type]));
 const speedOf = new Map([...enemies, ...bosses].map((d) => [d.id, d.speed]));
 
 /** Per-spawn stat scaling (design section 6; level-1 so L1 is unscaled). */
 export function levelScaling(level) {
-  return { hp: 1 + 0.06 * (level - 1), speed: 1 + 0.01 * Math.floor(level / 10) };
+  return { hp: (1 + 0.03 * (level - 1)) * (LEVEL_TUNE[level - 1] ?? 1), speed: 1 + 0.01 * Math.floor(level / 10), boss: BOSS_TUNE[level - 1] ?? 1 };
 }
 
 /** Enemy ids available at `level`, ordered by introduction. */
@@ -49,14 +50,30 @@ export function rosterForLevel(level) {
 }
 
 /**
- * Wave budget in base-HP units: (400 + 30 * level) * (1 + 0.3 * waveIndex).
+ * Per-level multiplier on enemy HP (on top of the 1 + 0.03 * (level - 1) curve), produced by
+ * auto-tuning (tools/autotune.mjs) so the balance bot ends most levels with roughly half its HP.
+ * Bosses scale with it too.
+ */
+export const LEVEL_TUNE = [1, 2.17, 1.99, 2.22, 2.06, 2.14, 2.4, 2.4, 1.76, 1.06, 1.17, 1.7, 0.86, 1.09, 0.75, 1.02, 1.55, 1.17, 1.38, 0.35, 1.7, 1.29, 1.06, 0.94, 1.5, 1.7, 0.73, 1.7, 0.79, 1.1, 1.41, 0.39, 0.66, 0.71, 0.64, 1.09, 0.74, 0.68, 0.91, 0.48, 0.67, 0.8, 0.61, 0.7, 0.56, 0.8, 0.64, 0.54, 0.59, 0.51];
+
+/** Extra HP multiplier for bosses only (auto-tuned like LEVEL_TUNE; 1 on non-boss levels). */
+export const BOSS_TUNE = [1, 1, 1, 1, 1, 1, 1, 1, 1, 0.94, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.45, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.29, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.61, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.69];
+
+/**
+ * Wave budget in base-HP units: (320 + 14 * level) * (1 + 0.25 * waveIndex).
  * Actual HP is further multiplied by levelScaling(level).hp at spawn.
  */
 export function waveBudget(level, waveIndex) {
-  return (400 + 30 * level) * (1 + 0.3 * waveIndex);
+  return (320 + 14 * level) * (1 + 0.25 * waveIndex);
 }
 
 const round2 = (n) => Math.round(n * 100) / 100;
+
+const isAirId = (id) => typeOf.get(id) === 'air';
+
+/** Share of a mixed wave's HP budget spent on air units; every third wave is an "air raid". */
+const AIR_SHARE = 0.3;
+const AIR_RAID_SHARE = 0.5;
 
 function composeWave(level, i, n, roster, isBossWave) {
   const newIds = roster.filter((id) => INTRODUCED_AT[id] === level);
@@ -69,7 +86,19 @@ function composeWave(level, i, n, roster, isBossWave) {
     const id = roster[(level + 2 * i + 3 * j) % roster.length];
     if (!ids.includes(id)) ids.push(id);
   }
-  const weights = ids.map((id) => (newIds.includes(id) ? 1.5 : 1));
+  // Never a pure air wave once ground enemies exist: a defence cannot be all anti-air from the start.
+  const ground = roster.filter((id) => !isAirId(id));
+  if (ground.length && ids.every(isAirId)) ids.unshift(ground[(level + i) % ground.length]);
+  const airIds = ids.filter(isAirId);
+  const groundIds = ids.filter((id) => !isAirId(id));
+  const airShare = airIds.length && groundIds.length ? (i % 3 === 2 ? AIR_RAID_SHARE : AIR_SHARE) : airIds.length ? 1 : 0;
+  const rel = (id) => (newIds.includes(id) ? 1.5 : 1);
+  const sum = (list) => list.reduce((a, id) => a + rel(id), 0);
+  const weights = ids.map((id) => {
+    const air = isAirId(id);
+    const share = air ? airShare : 1 - airShare;
+    return (rel(id) / sum(air ? airIds : groundIds)) * share;
+  });
   const wsum = weights.reduce((a, b) => a + b, 0);
   return ids.map((id, k) => {
     const count = Math.max(1, Math.min(45, Math.round((budget * weights[k]) / wsum / hpOf.get(id))));
@@ -93,8 +122,14 @@ export function buildWaves(level) {
       },
       {
         enemies: [
-          { id: 'grunt', count: 8, interval: 1.0 },
-          { id: 'runner', count: 5, interval: 0.8 },
+          { id: 'grunt', count: 7, interval: 1.1 },
+          { id: 'runner', count: 4, interval: 0.9 },
+        ],
+      },
+      {
+        enemies: [
+          { id: 'grunt', count: 8, interval: 1.1 },
+          { id: 'runner', count: 4, interval: 0.9 },
         ],
       },
     ];

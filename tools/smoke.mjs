@@ -104,6 +104,42 @@ try {
   await page.waitForFunction(() => document.getElementById('screens').hidden);
   await page.waitForTimeout(400);
   check('resume continues the sim', (await page.evaluate(() => window.__td.world.time)) > t1);
+  // ---- game speed: button cycles 1x -> 2x -> 3x -> 1x, keys 1/2/3 set it; more sim time per real second ----
+  const simRate = async () => {
+    const a = await page.evaluate(() => window.__td.world.time);
+    await page.waitForTimeout(1000);
+    const b = await page.evaluate(() => window.__td.world.time);
+    return b - a;
+  };
+  check('speed button starts at 1x', ((await page.locator('#hud-speed').textContent()) || '').trim() === '1x');
+  const r1 = await simRate();
+  await page.click('#hud-speed');
+  check('speed button shows 2x', ((await page.locator('#hud-speed').textContent()) || '').trim() === '2x');
+  const r2 = await simRate();
+  await page.keyboard.press('3');
+  const r3 = await simRate();
+  check('2x runs ~2x more sim time', r2 > r1 * 1.6, `1x=${r1.toFixed(2)} 2x=${r2.toFixed(2)}`);
+  check('3x runs ~3x more sim time', r3 > r1 * 2.4, `1x=${r1.toFixed(2)} 3x=${r3.toFixed(2)}`);
+  await page.click('#hud-speed');
+  check('speed button wraps back to 1x', ((await page.locator('#hud-speed').textContent()) || '').trim() === '1x');
+  await page.keyboard.press('1');
+
+  // ---- window blur / hidden tab auto-pauses an active level ----
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await waitScreen('paused');
+  check('blur shows the pause screen', (await screen()) === 'paused');
+  await page.click('#btn-resume');
+  await page.waitForFunction(() => document.getElementById('screens').hidden);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await waitScreen('paused');
+  check('hidden tab shows the pause screen', (await screen()) === 'paused');
+  await page.evaluate(() => { delete document.hidden; });
+  await page.click('#btn-resume');
+  await page.waitForFunction(() => document.getElementById('screens').hidden);
+
   // pause button in the top bar
   await page.click('#hud-pause');
   await waitScreen('paused');

@@ -22,6 +22,7 @@ const SAMPLE = TILE_SIZE / 2;
 const PX_PER_SPEED = 1.5 * TILE_SIZE;
 const MARGIN = 1.5; // wanted capacity relative to incoming HP flux
 const TAIL = 0.08; // value of capacity beyond the margin
+const FUTURE_WEIGHT = 0.3; // demand weight of waves beyond the next two
 const REASSESS = 2; // sim seconds between in-wave decisions
 const SKIP_HUB = new Set(['logistics_hub']);
 const MODIFIERS = new Set(['cryo_sprayer', 'gas_projector', 'emp_node', 'target_painter', 'armor_breaker', 'ammo_feeder', 'command_uplink']);
@@ -114,7 +115,7 @@ function buildDemand(world, S) {
   const groupDensity = (interval, speed) => 1 / Math.max(0.2, interval * speed / TILE_SIZE); // enemies per tile
   const addGroup = (g, weight) => {
     const def = DEFS.get(g.id);
-    const hp = def.hp * scale.hp;
+    const hp = def.hp * scale.hp * (def.boss ? scale.boss : 1);
     shares.forEach((sh, pi) => {
       if (!sh) return;
       const info = add(g.id, hp, g.count * sh, pi, 0, weight);
@@ -148,9 +149,10 @@ function buildDemand(world, S) {
     const wave = world.waves[w];
     if (wave.supply) continue;
     const hasBoss = wave.enemies.some((g) => DEFS.get(g.id).boss);
-    if (combat < 2 || (hasBoss && combat < 3)) for (const g of wave.enemies) addGroup(g, 1);
+    // later waves count a little, so e.g. the first air raid is prepared for before it is next
+    const weight = combat < 2 || (hasBoss && combat < 3) ? 1 : FUTURE_WEIGHT;
+    for (const g of wave.enemies) addGroup(g, weight);
     combat++;
-    if (combat >= 3) break;
   }
   const T = new Float64Array(S.n);
   const D = new Float64Array(S.n);
@@ -235,13 +237,32 @@ function evaluate(list, S, dem, tileIdx) {
   return { C, slowKeep, paint, armor };
 }
 
-function value(C, dem, airBoost, S) {
+/** Per-sample weight: weakest channel (ground path or air line) first, so no route is left open. */
+function channelWeights(C, dem, S) {
+  const key = (i) => (S.air[i] ? 1000 : 0) + S.path[i];
+  const cap = new Map();
+  const need = new Map();
+  for (let i = 0; i < S.n; i++) {
+    if (dem.R[i] <= 0) continue;
+    const k = key(i);
+    cap.set(k, (cap.get(k) ?? 0) + C[i]);
+    need.set(k, (need.get(k) ?? 0) + dem.R[i]);
+  }
+  const W = new Float64Array(S.n);
+  for (let i = 0; i < S.n; i++) {
+    if (dem.R[i] <= 0) continue;
+    const ratio = cap.get(key(i)) / need.get(key(i));
+    W[i] = 1 / (0.25 + ratio);
+  }
+  return W;
+}
+
+function value(C, dem, W, S) {
   let v = 0;
   for (let i = 0; i < S.n; i++) {
     if (dem.R[i] <= 0) continue;
-    const cap = dem.R[i] * MARGIN;
     const c = C[i];
-    v += (Math.min(c, cap) + TAIL * c) * (S.air[i] ? airBoost : 1);
+    v += (Math.min(c, dem.R[i] * MARGIN) + TAIL * c) * W[i];
   }
   return v;
 }
@@ -261,14 +282,14 @@ export function runBot(level, seed, { verbose = false } = {}) {
   const cheapest = Math.min(...unlocked.map((d) => d.levels[0].cost));
 
   let dem = buildDemand(world, S);
-  const airBoost = 1.2;
 
   const asList = () => world.towers.map((t) => ({ def: t.def, lv: lvOf(t), x: t.x, y: t.y, key: `${t.tx},${t.ty}`, tower: t }));
 
   function decideOnce() {
     const list = asList();
     const base = evaluate(list, S, dem, tileIdx);
-    const baseVal = value(base.C, dem, airBoost, S);
+    const W = channelWeights(base.C, dem, S);
+    const baseVal = value(base.C, dem, W, S);
     const room = new Float64Array(S.n);
     for (let i = 0; i < S.n; i++) room[i] = dem.R[i] * MARGIN - base.C[i];
     const occupied = new Set(world.towers.map((t) => `${t.tx},${t.ty}`));
@@ -286,7 +307,7 @@ export function runBot(level, seed, { verbose = false } = {}) {
         if (oldLv && ti.dist[j] <= (oldLv.range ?? 0) * (1 + auraRg) * TILE_SIZE) add -= dpsAt(def, oldLv, 1 + auraFr, S.air[i], dem.D[i]);
         if (add <= 0) continue;
         add *= dem.T[i] * Math.min(3, 1 / base.slowKeep[i]) * (1 + base.paint[i] + base.armor[i]);
-        g += (Math.min(add, Math.max(0, room[i])) + TAIL * add) * (S.air[i] ? airBoost : 1);
+        g += (Math.min(add, Math.max(0, room[i])) + TAIL * add) * W[i];
       }
       return g;
     };
@@ -324,7 +345,7 @@ export function runBot(level, seed, { verbose = false } = {}) {
         void a;
       } else {
         const copy = list.map((q) => (q === o ? { ...q, lv: next } : q));
-        const v = value(evaluate(copy, S, dem, tileIdx).C, dem, airBoost, S);
+        const v = value(evaluate(copy, S, dem, tileIdx).C, dem, W, S);
         consider((v - baseVal) / cost, { kind: 'upgrade', t });
       }
     }
@@ -334,7 +355,7 @@ export function runBot(level, seed, { verbose = false } = {}) {
       for (const ti of hot) {
         if (occupied.has(`${ti.tx},${ti.ty}`)) continue;
         const copy = [...list, { def, lv, x: ti.x, y: ti.y, key: `${ti.tx},${ti.ty}` }];
-        const v = value(evaluate(copy, S, dem, tileIdx).C, dem, airBoost, S);
+        const v = value(evaluate(copy, S, dem, tileIdx).C, dem, W, S);
         consider((v - baseVal) / lv.cost, { kind: 'place', def, tx: ti.tx, ty: ti.ty });
       }
     }
@@ -350,6 +371,8 @@ export function runBot(level, seed, { verbose = false } = {}) {
     }
   }
 
+  const lastBossHp = new Map();
+  let leakedBossHp = 0;
   let nextAssess = 0;
   let lastKey = '';
   while (world.phase !== 'won' && world.phase !== 'lost' && world.time < MAX_TIME) {
@@ -357,6 +380,7 @@ export function runBot(level, seed, { verbose = false } = {}) {
     if (world.phase === 'build') {
       dem = buildDemand(world, S);
       buy();
+      if (verbose) console.log(`  wave ${world.waveIndex + 1}/${world.waves.length} t=${world.time.toFixed(0)} hp=${world.hp} coins=${world.coins} towers=${world.towers.length}`);
       startWave(world);
       lastKey = '';
     } else if (world.time >= nextAssess) {
@@ -367,15 +391,18 @@ export function runBot(level, seed, { verbose = false } = {}) {
       }
     }
     void key; void lastKey;
+    for (const e of world.enemies) if (e.boss) lastBossHp.set(e.id, e.hp);
     step(world, STEP);
+    for (const ev of world.events) if (ev.type === 'leak' && lastBossHp.has(ev.enemyId)) leakedBossHp += lastBossHp.get(ev.enemyId);
     world.events.length = 0;
   }
 
-  const bossHpLeft = world.enemies.filter((e) => e.boss).reduce((a, e) => a + e.hp, 0);
-  const bossAlive = world.enemies.some((e) => e.boss);
+  const bossHpLeft = world.enemies.filter((e) => e.boss).reduce((a, e) => a + e.hp, 0) + leakedBossHp;
+  const bossAlive = bossHpLeft > 0;
   const won = world.phase === 'won';
   if (verbose) {
     console.log(`L${level} s${seed} ${world.phase} hp ${world.hp} t ${world.time.toFixed(0)}`);
+    console.log('  leaks', JSON.stringify(Object.fromEntries(Object.entries(world.stats.enemies).filter(([, v]) => v.leaked).map(([k, v]) => [k, `${v.leaked}/${v.seen}`]))));
     for (const t of world.towers) console.log(`  ${t.typeId} L${t.level} @${t.tx},${t.ty} dmg ${Math.round(world.stats.towers[t.id].damage)} kills ${t.kills}`);
   }
   return {
@@ -388,6 +415,8 @@ export function runBot(level, seed, { verbose = false } = {}) {
     bossHpLeft: won ? 0 : bossHpLeft,
     bossAlive,
     seconds: world.time,
+    // sim time if the player also waits out every between-wave countdown
+    fullSeconds: world.time + (world.waves.length - 1) * world.countdownLength,
     coinsLeft: world.coins,
     towers: world.towers.length,
     waveReached: world.waveIndex + 1,

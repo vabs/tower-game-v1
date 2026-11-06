@@ -18,7 +18,7 @@ const rows = [];
 const t0 = Date.now();
 
 if (!asJson) {
-  console.log(`${pad('L', 3)} ${pad('win%', 5)} ${pad('hpLeft%', 8)} ${pad('boss left', 10)} ${pad('time s', 7)} ${pad('coins', 6)} ${pad('towers', 6)}`);
+  console.log(`${pad('L', 3)} ${pad('win%', 5)} ${pad('hpLeft%', 8)} ${pad('boss left', 10)} ${pad('time s', 7)} ${pad('w/ cd s', 8)} ${pad('coins', 6)} ${pad('towers', 6)}`);
 }
 for (let level = first; level <= last; level++) {
   const runs = [];
@@ -32,13 +32,14 @@ for (let level = first; level <= last; level++) {
     hpLeftWinsPct: wins.length ? mean(wins.map((r) => r.hp / r.maxHp)) * 100 : null,
     bossHpLeft: lost.length ? mean(lost.map((r) => r.bossHpLeft)) : null,
     seconds: mean(runs.map((r) => r.seconds)),
+    fullSeconds: mean(runs.map((r) => r.fullSeconds)),
     coinsLeft: mean(runs.map((r) => r.coinsLeft)),
     towers: mean(runs.map((r) => r.towers)),
   };
   rows.push(row);
   if (!asJson) {
     console.log(
-      `${pad(level, 3)} ${pad(Math.round(row.winRate * 100), 5)} ${pad(row.hpLeftWinsPct === null ? '-' : Math.round(row.hpLeftWinsPct), 8)} ${pad(row.bossHpLeft === null ? '-' : Math.round(row.bossHpLeft), 10)} ${pad(Math.round(row.seconds), 7)} ${pad(Math.round(row.coinsLeft), 6)} ${pad(row.towers.toFixed(1), 6)}`
+      `${pad(level, 3)} ${pad(Math.round(row.winRate * 100), 5)} ${pad(row.hpLeftWinsPct === null ? '-' : Math.round(row.hpLeftWinsPct), 8)} ${pad(row.bossHpLeft === null ? '-' : Math.round(row.bossHpLeft), 10)} ${pad(Math.round(row.seconds), 7)} ${pad(Math.round(row.fullSeconds), 8)} ${pad(Math.round(row.coinsLeft), 6)} ${pad(row.towers.toFixed(1), 6)}`
     );
   }
 }
@@ -47,13 +48,13 @@ const chapters = [[1, 10], [11, 20], [21, 30], [31, 40], [41, 50]];
 if (asJson) {
   console.log(JSON.stringify(rows));
 } else {
-  console.log('\nchapter     win%  hpLeft%(wins)  avg time s');
+  console.log('\nchapter     win%  hpLeft%(wins)  avg time s  w/ countdowns s');
   for (const [a, b] of chapters) {
     const rs = rows.filter((r) => r.level >= a && r.level <= b);
     if (!rs.length) continue;
     const hp = rs.filter((r) => r.hpLeftWinsPct !== null);
     console.log(
-      `L${pad(a, 2)}-${pad(b, 2)}   ${pad(Math.round(mean(rs.map((r) => r.winRate)) * 100), 6)}  ${pad(hp.length ? Math.round(mean(hp.map((r) => r.hpLeftWinsPct))) : '-', 12)}  ${pad(Math.round(mean(rs.map((r) => r.seconds))), 9)}`
+      `L${pad(a, 2)}-${pad(b, 2)}   ${pad(Math.round(mean(rs.map((r) => r.winRate)) * 100), 6)}  ${pad(hp.length ? Math.round(mean(hp.map((r) => r.hpLeftWinsPct))) : '-', 12)}  ${pad(Math.round(mean(rs.map((r) => r.seconds))), 9)}  ${pad(Math.round(mean(rs.map((r) => r.fullSeconds))), 16)}`
     );
   }
   console.log(`\n${((Date.now() - t0) / 1000).toFixed(1)}s wall`);

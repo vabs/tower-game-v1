@@ -12,7 +12,7 @@ import { createStats } from './stats.js';
 
 export const STEP = 1 / 60;
 export const STARTING_HP = 25;
-export const WAVE_COUNTDOWN = 10;
+export const WAVE_COUNTDOWN = 7;
 
 /** Decision 15. */
 export function startingCoins(level) {

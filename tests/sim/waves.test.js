@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { buildWaves, INTRODUCED_AT, levelScaling } from '../../src/data/waves.js';
+import { buildWaves, INTRODUCED_AT, levelScaling, LEVEL_TUNE, BOSS_TUNE } from '../../src/data/waves.js';
 import { bosses, BOSS_SEQUENCE } from '../../src/data/bosses.js';
 import { enemies } from '../../src/data/enemies.js';
 import { levels } from '../../src/data/levels.js';
@@ -55,7 +55,8 @@ test('level 1 keeps the hardcoded M1 waves', () => {
   expect(buildWaves(1).map((w) => w.enemies.map((g) => `${g.count}${g.id}`))).toEqual([
     ['6grunt'],
     ['6grunt', '3runner'],
-    ['8grunt', '5runner'],
+    ['7grunt', '4runner'],
+    ['8grunt', '4runner'],
   ]);
 });
 
@@ -71,26 +72,31 @@ test('boss levels', () => {
 test('boss defs derive from base enemies', () => {
   const heavy = enemies.find((e) => e.id === 'heavy');
   const b = bosses.find((x) => x.id === 'heavy_boss');
-  expect(b).toMatchObject({ hp: heavy.hp * 12, speed: heavy.speed * 0.8, coins: heavy.coins * 10, leak: 25, boss: true, scale: 1.5, sprite: 'bosses/heavy_boss' });
+  expect(b).toMatchObject({ hp: heavy.hp * 6, speed: heavy.speed * 0.8, coins: heavy.coins * 10, leak: 25, boss: true, scale: 1.5, sprite: 'bosses/heavy_boss' });
   expect(bosses.find((x) => x.id === 'sky_tank_boss').type).toBe('air');
 });
 
 test('levelScaling', () => {
-  expect(levelScaling(1)).toEqual({ hp: 1, speed: 1 });
-  expect(levelScaling(10).hp).toBeCloseTo(1.54);
+  expect(levelScaling(1)).toEqual({ hp: 1, speed: 1, boss: 1 });
+  expect(levelScaling(10).hp).toBeCloseTo((1 + 0.03 * 9) * LEVEL_TUNE[9]);
   expect(levelScaling(10).speed).toBeCloseTo(1.01);
-  expect(levelScaling(50).hp).toBeCloseTo(3.94);
+  expect(levelScaling(10).boss).toBe(BOSS_TUNE[9]);
+  expect(levelScaling(50).hp).toBeCloseTo((1 + 0.03 * 49) * LEVEL_TUNE[49]);
   expect(levelScaling(50).speed).toBeCloseTo(1.05);
+  expect(LEVEL_TUNE).toHaveLength(50);
+  expect(BOSS_TUNE).toHaveLength(50);
+  for (const v of [...LEVEL_TUNE, ...BOSS_TUNE]) expect(v).toBeGreaterThan(0.3);
 });
 
 test('spawnEnemy applies scaling and boss stats', () => {
   const w = createWorld(10);
   const g = spawnEnemy(w, 'grunt');
-  expect(g.maxHp).toBeCloseTo(80 * 1.54);
+  const sc = levelScaling(10);
+  expect(g.maxHp).toBeCloseTo(80 * sc.hp);
   expect(g.speed).toBeCloseTo(1.01);
   const b = spawnEnemy(w, 'heavy_boss');
   expect(b).toMatchObject({ boss: true, scale: 1.5, leak: 25, sprite: 'bosses/heavy_boss' });
-  expect(b.maxHp).toBeCloseTo(220 * 12 * 1.54);
+  expect(b.maxHp).toBeCloseTo(220 * 6 * sc.hp * sc.boss);
 });
 
 test('supply drop pays coins and ends immediately without enemies', () => {

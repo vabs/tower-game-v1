@@ -19,8 +19,8 @@ test('level 1: 3 AR Turrets beat all waves with hp left', () => {
   const w = createWorld(1, { seed: 42 });
   play(w, [[6, 3], [9, 4], [5, 7]]);
   expect(w.phase).toBe('won');
-  expect(w.hp).toBeGreaterThan(0);
-  expect(w.waveIndex).toBe(3);
+  expect(w.hp).toBeGreaterThanOrEqual(15); // gentle: 3 ARs lose only a few HP
+  expect(w.waveIndex).toBe(4);
   expect(w.towers).toHaveLength(3);
 });
 
@@ -32,6 +32,12 @@ test('level 1: identical seeds give identical outcomes', () => {
   expect([a.hp, a.coins, a.time]).toEqual([b.hp, b.coins, b.time]);
 });
 
+test('level 1 with 2 ARs is still winnable', () => {
+  const w = createWorld(1, { seed: 42 });
+  play(w, [[6, 3], [9, 4]]);
+  expect(w.phase).toBe('won');
+});
+
 test('level 1 with no towers: starting hp is not enough -> lost', () => {
   const w = createWorld(1, { seed: 1 });
   play(w, []);
@@ -39,10 +45,10 @@ test('level 1 with no towers: starting hp is not enough -> lost', () => {
   expect(w.hp).toBe(0);
 });
 
-test('level 1 with no towers but huge hp: every enemy leaks for 1 hp', () => {
+test('level 1 with no towers but huge hp: every enemy leaks for 1 hp (38 enemies)', () => {
   const w = createWorld(1, { seed: 1 });
   w.hp = w.maxHp = 1000;
   play(w, []);
   expect(w.phase).toBe('won');
-  expect(w.hp).toBe(1000 - 28);
+  expect(w.hp).toBe(1000 - 38);
 });

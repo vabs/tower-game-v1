@@ -14,9 +14,9 @@ function runUntil(world, pred, cap = 600) {
   return t;
 }
 
-test('level 1 has 3 waves of grunts/runners', () => {
+test('level 1 has 4 waves of grunts/runners', () => {
   const waves = buildWaves(1);
-  expect(waves).toHaveLength(3);
+  expect(waves).toHaveLength(4);
   for (const w of waves) for (const g of w.enemies) expect(['grunt', 'runner']).toContain(g.id);
 });
 
@@ -86,8 +86,8 @@ test('calling the next wave early pays a bonus and cancels countdown', () => {
   const before = w.coins;
   const r = startWave(w);
   expect(r.ok).toBe(true);
-  expect(r.bonus).toBe(5);
-  expect(w.coins).toBe(before + 5);
+  expect(r.bonus).toBe(Math.floor(WAVE_COUNTDOWN / 2));
+  expect(w.coins).toBe(before + r.bonus);
   expect(w.countdown).toBe(null);
 });
 
@@ -96,7 +96,7 @@ test('with no towers all waves leak -> hp reduced, then won if hp survives', () 
   w.hp = w.maxHp = 1000;
   startWave(w);
   runUntil(w, (x) => x.phase === 'won' || x.phase === 'lost');
-  const total = 6 + 9 + 13;
+  const total = 6 + 9 + 11 + 12;
   expect(1000 - w.hp).toBe(total); // all 1-damage enemies
   expect(w.phase).toBe('won');
 });
