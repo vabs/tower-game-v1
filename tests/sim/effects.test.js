@@ -69,18 +69,18 @@ test('EMP node stuns on hit', () => {
   expect(e.status.stun.remaining).toBeGreaterThan(0);
 });
 
-test('shock coil chains to 1 + chains enemies, nearest first, each slowed', () => {
+test('shock coil strikes `chains` targets in total, nearest first, each slowed', () => {
   const w = sandbox();
-  const t = place(w, 'shock_coil', 6, 3); // L1: chains 2, 2-tile hops
+  const t = place(w, 'shock_coil', 6, 3); // L1: chains 2 = 2 targets total, 2-tile hops
   setTargeting(w, t.id, 'last');
   const es = [230, 270, 310, 350, 390].map((d) => enemyAt(w, 'tank', d)); // 40 px apart
   step(w, STEP);
   const hit = es.filter((e) => e.hp < e.maxHp);
-  expect(hit).toEqual(es.slice(0, 3));
+  expect(hit).toEqual(es.slice(0, 2));
   for (const e of hit) expect(e.status.slow.factor).toBe(0.15);
-  expect(es[3].status.slow).toBeUndefined();
+  expect(es[2].status.slow).toBeUndefined();
   const ev = w.events.find((x) => x.type === 'chain');
-  expect(ev.points).toHaveLength(4); // tower + 3 enemies
+  expect(ev.points).toHaveLength(3); // tower + 2 enemies
 });
 
 test('shock coil does not hop to enemies farther than 2 tiles', () => {
@@ -120,4 +120,52 @@ test('gas projector tower creates a field near its target and refreshes instead 
   enemyAt(w, 'tank', 250);
   run(w, 2);
   expect(w.fields).toHaveLength(1);
+});
+
+test('burn damage honours the vulnerability multiplier', () => {
+  const w = sandbox();
+  const e = enemyAt(w, 'tank', 100);
+  e.hp = e.maxHp = 1000;
+  e.status.paint = { amount: 0.25, remaining: 10 };
+  applyBurn(e, 10, 2, null);
+  run(w, 1);
+  expect(1000 - e.hp).toBeCloseTo(12.5, 1);
+});
+
+test('gas damage honours the vulnerability multiplier', () => {
+  const w = sandbox();
+  const t = place(w, 'gas_projector', 6, 3);
+  const e = enemyAt(w, 'tank', 250);
+  e.hp = e.maxHp = 1000;
+  e.status.armor = { amount: 0.5, remaining: 10 };
+  addGasField(w, t, e.x, e.y, t.def.levels[0]);
+  updateEffects(w, 1);
+  expect(1000 - e.hp).toBeCloseTo(6 * 1.5, 3);
+});
+
+test('same-tower gas fields never stack: one live field per tower, moved on refire', () => {
+  const w = sandbox();
+  const t = place(w, 'gas_projector', 6, 3);
+  const lv = t.def.levels[0];
+  const e = enemyAt(w, 'tank', 250);
+  e.hp = e.maxHp = 1000;
+  addGasField(w, t, e.x, e.y, lv);
+  addGasField(w, t, e.x + 40, e.y, lv);
+  expect(w.fields).toHaveLength(1);
+  expect(w.fields[0].x).toBe(e.x + 40);
+  updateEffects(w, 1);
+  expect(1000 - e.hp).toBeCloseTo(6, 3);
+});
+
+test('gas field dps uses the tower effective (aura-boosted) rate', () => {
+  const w = sandbox();
+  const t = place(w, 'gas_projector', 6, 3);
+  t.aura = { fireRate: 0.5, range: 0 };
+  const e = enemyAt(w, 'tank', 250);
+  e.hp = e.maxHp = 1000;
+  const lv = t.def.levels[0];
+  enemyAt(w, 'tank', 250);
+  run(w, 0.05); // tower fires, creating its field with the boosted rate
+  expect(w.fields).toHaveLength(1);
+  expect(w.fields[0].dps).toBeCloseTo(lv.damage * lv.rate * 1.5, 5);
 });

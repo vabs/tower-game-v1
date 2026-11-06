@@ -97,7 +97,7 @@ function fire(world, tower, target, s) {
 
   if (lv.pierce) return fireLine(world, tower, target, shot, lv, s.rangePx);
   if (lv.chains) return chainLightning(world, tower, target, damage, lv, mods, aa);
-  if (lv.fieldRadius) return addGasField(world, tower, target.x, target.y, lv);
+  if (lv.fieldRadius) return addGasField(world, tower, target.x, target.y, lv, s.rate);
   const origin = tower.typeId === 'interceptor_drone' ? dronePosition(world, tower) : tower;
   return spawnProjectile(world, tower, target, shot, { splash: (lv.splash ?? 0) * TILE_SIZE, origin });
 }

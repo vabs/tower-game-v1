@@ -47,3 +47,30 @@ test('does not mutate input array', () => {
   selectTarget(tower, enemies, 'closest');
   assert.deepEqual(enemies, copy);
 });
+
+test('first/last use remaining distance to exit, not distance travelled', () => {
+  const list = [
+    { id: 1, x: 1, y: 0, distance: 900, length: 2000, hp: 10 }, // 1100 left
+    { id: 2, x: 2, y: 0, distance: 300, length: 400, hp: 10 }, // 100 left
+  ];
+  assert.equal(selectTarget(tower, list, 'first').id, 2);
+  assert.equal(selectTarget(tower, list, 'last').id, 1);
+});
+
+test('first compares air against ground by remaining distance', () => {
+  const list = [
+    { id: 1, x: 1, y: 0, distance: 700, length: 1500, hp: 10 },
+    { id: 2, x: 2, y: 0, distance: 600, length: 650, hp: 10, air: true },
+  ];
+  assert.equal(selectTarget({ ...tower, canHitAir: true }, list, 'first').id, 2);
+});
+
+test('air mode prefers air, then closest to exit', () => {
+  const list = [
+    { id: 1, x: 1, y: 0, distance: 900, length: 1000, hp: 10 },
+    { id: 2, x: 2, y: 0, distance: 100, length: 1000, hp: 10, air: true },
+    { id: 3, x: 3, y: 0, distance: 300, length: 1000, hp: 10, air: true },
+  ];
+  assert.equal(selectTarget({ ...tower, canHitAir: true }, list, 'air').id, 3);
+  assert.equal(selectTarget({ ...tower, canHitAir: true }, [list[0]], 'air').id, 1);
+});

@@ -1,7 +1,12 @@
+/** Path length still to walk. Missing `length` (bare test objects) counts as 0. */
+const remaining = (e) => (e.length ?? 0) - e.distance;
+
 const KEYS = {
-  first: (e) => e.distance,
-  last: (e) => -e.distance,
+  first: (e) => -remaining(e),
+  last: (e) => remaining(e),
   strongest: (e) => e.hp,
+  // Air first, then closest to the exit (route lengths are far below 1e9).
+  air: (e) => (e.air ? 1e9 : 0) - remaining(e),
 };
 
 export function selectTarget(tower, enemies, mode = 'first') {

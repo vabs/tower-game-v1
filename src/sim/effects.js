@@ -36,14 +36,18 @@ export function speedMultiplier(enemy) {
 }
 
 /**
- * Gas Projector field: a ground zone. A tower that fires again near its own
- * live field refreshes it instead of stacking a second one.
+ * Gas Projector field: a ground zone. Each tower owns at most one live field;
+ * firing again moves and refreshes it (never stacks). `rate` is the tower's effective fire rate.
  */
-export function addGasField(world, tower, x, y, lv) {
+export function addGasField(world, tower, x, y, lv, rate = lv.rate) {
   const radius = lv.fieldRadius * TILE_SIZE;
-  const existing = world.fields.find((f) => f.towerId === tower.id && Math.hypot(f.x - x, f.y - y) < radius * 0.5);
-  const dps = lv.damage * lv.rate;
+  const existing = world.fields.find((f) => f.towerId === tower.id);
+  const dps = lv.damage * rate;
   if (existing) {
+    existing.x = x;
+    existing.y = y;
+    existing.radius = radius;
+    existing.duration = lv.fieldDuration;
     existing.remaining = lv.fieldDuration;
     existing.slow = lv.fieldSlow;
     existing.dps = dps;
@@ -55,7 +59,7 @@ export function addGasField(world, tower, x, y, lv) {
 }
 
 /**
- * Shock Coil: strike `first`, then hop up to `lv.chains` times to the nearest
+ * Shock Coil: strike `first`, then hop on until `lv.chains` targets in total are struck, to the nearest
  * un-hit eligible enemy within 2 tiles of the previous one. Every enemy hit is slowed.
  * @returns {object[]} enemies struck, in order
  */
@@ -68,7 +72,7 @@ export function chainLightning(world, tower, first, damage, lv, mods, canHitAirF
   };
   strike(first);
   let cur = first;
-  for (let i = 0; i < (lv.chains ?? 0); i++) {
+  for (let i = 0; i < (lv.chains ?? 1) - 1; i++) {
     let best = null;
     let bestD = 2 * TILE_SIZE;
     for (const e of world.enemies) {
@@ -96,7 +100,7 @@ export function updateEffects(world, dt) {
     const s = e.status;
     if (s.burn) {
       const t = Math.min(dt, s.burn.remaining);
-      applyDamage(world, e, s.burn.dps * t, s.burn.towerId);
+      applyDamage(world, e, shotDamage(s.burn.dps * t, e), s.burn.towerId);
       s.burn.remaining -= dt;
       if (s.burn.remaining <= 0) delete s.burn;
     }
@@ -113,7 +117,7 @@ export function updateEffects(world, dt) {
         if (e.dead || e.leaked || e.air) continue; // ground only
         if (Math.hypot(e.x - f.x, e.y - f.y) > f.radius) continue;
         applySlow(e, f.slow, 0.25); // short refresh: slow fades soon after leaving
-        applyDamage(world, e, f.dps * dt, f.towerId);
+        applyDamage(world, e, shotDamage(f.dps * dt, e), f.towerId);
       }
     }
     world.fields = world.fields.filter((f) => f.remaining > 0);
