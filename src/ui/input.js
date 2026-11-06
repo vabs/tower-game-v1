@@ -2,6 +2,7 @@ import { TILE_SIZE } from '../core/grid.js';
 
 /**
  * Canvas mouse + keyboard -> app intents.
+ * Escape is routed to app.escape() (cancel placement first, then pause).
  * app: { world, spawnTest? (sandbox only), hover, arm(id|null), select(id|null), clickTile(tx,ty,shiftKey), towerAt(tx,ty) }
  */
 export function attachInput(canvas, app) {
@@ -29,9 +30,6 @@ export function attachInput(canvas, app) {
     const tag = e.target?.tagName;
     if (tag === 'SELECT' || tag === 'INPUT' || tag === 'TEXTAREA') return;
     if ((e.key === 'n' || e.key === 'N') && app.spawnTest) app.spawnTest();
-    if (e.key === 'Escape') {
-      app.arm(null);
-      app.select(null);
-    }
+    if (e.key === 'Escape') app.escape();
   });
 }

@@ -1,5 +1,9 @@
 import { getTowerDef, towerStats, towerLevel, canHitAir } from '../sim/towers.js';
 import { upgradeCostOf, sellValue, MAX_LEVEL } from '../sim/commands.js';
+import { levels, getUnlocksForLevel } from '../data/levels.js';
+import { enemies } from '../data/enemies.js';
+import { bosses, BOSS_SEQUENCE } from '../data/bosses.js';
+import { INTRODUCED_AT } from '../data/waves.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -59,21 +63,21 @@ export function describeSpecial(tower) {
  * Binds the DOM (top bar, tower list, selected panel, overlay) to world state.
  * Reads world, never mutates it; user intent goes out through callbacks.
  */
-export function createHud(sprites, { onArm, onStart, onRetry, onUpgrade, onSell, onTargeting, onSpawnTest }) {
+export function createHud(sprites, { onArm, onStart, onPause, onUpgrade, onSell, onTargeting, onSpawnTest }) {
   const el = {
     level: $('hud-level'), wave: $('hud-wave'), hp: $('hud-hp'), coins: $('hud-coins'),
     start: $('hud-start'), msg: $('hud-msg'), list: $('hud-tower-list'), spawnTest: $('hud-spawn-test'),
     selName: $('hud-selected'), selRange: $('hud-range'), selDps: $('hud-dps'), selLevel: $('hud-sel-level'),
     selDamage: $('hud-damage'), selRate: $('hud-rate'), special: $('hud-special'),
     targeting: $('hud-targeting'), upgrade: $('hud-upgrade'), sell: $('hud-sell'),
-    overlay: $('overlay'), title: $('overlay-title'), text: $('overlay-text'), retry: $('overlay-retry'),
+    pause: $('hud-pause'), brief: $('hud-brief'), unlock: $('hud-unlock'),
   };
   let buttons = [];
   let msgTimer = null;
   let specialKey = '';
 
   el.start.addEventListener('click', () => onStart());
-  el.retry.addEventListener('click', () => onRetry());
+  el.pause.addEventListener('click', () => onPause?.());
   el.upgrade.addEventListener('click', () => onUpgrade());
   el.sell.addEventListener('click', () => onSell());
   el.targeting.addEventListener('change', () => onTargeting(el.targeting.value));
@@ -216,15 +220,61 @@ export function createHud(sprites, { onArm, onStart, onRetry, onUpgrade, onSell,
     const tower = app.selectedId != null ? world.towers.find((t) => t.id === app.selectedId) : null;
     updateSelected(world, tower);
 
-    const over = world.phase === 'won' || world.phase === 'lost';
-    el.overlay.hidden = !over;
-    if (over) {
-      el.title.textContent = world.phase === 'won' ? 'Victory' : 'Defeat';
-      el.text.textContent = world.phase === 'won'
-        ? `Level ${world.level} cleared with ${world.hp}/${world.maxHp} HP left.`
-        : `Your base fell on wave ${Math.min(world.waveIndex + 1, total)}.`;
+    el.brief.classList.toggle('fresh', world.waveIndex === 0 && world.phase === 'build');
+  }
+
+  const row = (...kids) => {
+    const d = document.createElement('div');
+    d.append(...kids);
+    return d;
+  };
+  const spriteImg = (key) => {
+    const img = document.createElement('img');
+    img.alt = '';
+    const sp = sprites[key];
+    if (sp) img.src = sp.src;
+    return img;
+  };
+
+  /** Compact mission brief (map, waves, new enemies, medal rule) and next-tower-unlock tracker. */
+  function buildBrief(world, { sandbox = false } = {}) {
+    el.msg.textContent = '';
+    el.brief.textContent = '';
+    el.unlock.textContent = '';
+    el.brief.parentElement.hidden = sandbox;
+    if (sandbox) return;
+    const lv = levels[world.level - 1];
+    const mapName = lv.mapType[0].toUpperCase() + lv.mapType.slice(1);
+    const waves = `${world.waves.length} waves${lv.supplyDropAfterWave != null ? ' (1 supply drop)' : ''}`;
+    el.brief.append(row(`Map: ${mapName}`), row(waves));
+    const fresh = [...enemies.filter((e) => INTRODUCED_AT[e.id] === world.level), ...(BOSS_SEQUENCE[lv.boss] ?? []).map((id) => bosses.find((b) => b.id === id)).filter(Boolean)];
+    if (fresh.length) {
+      const line = row('New: ');
+      line.className = 'brief-new';
+      for (const e of fresh) {
+        const sp = spriteImg(e.sprite ?? `enemies/${e.id}`);
+        sp.title = e.name;
+        line.append(sp, `${e.name} `);
+      }
+      el.brief.append(line);
+    }
+    const goal = row('No leaks for Gold');
+    goal.className = 'brief-goal';
+    el.brief.append(goal);
+
+    let next = null;
+    for (let i = world.level + 1; i <= levels.length && !next; i++) {
+      const ids = getUnlocksForLevel(i);
+      if (ids.length) next = { level: i, ids };
+    }
+    if (!next) el.unlock.append(row('All towers unlocked'));
+    else {
+      const def = getTowerDef(next.ids[0]);
+      const line = row(spriteImg(`towers/${next.ids[0]}_l1`), `${def.name}${next.ids.length > 1 ? ` +${next.ids.length - 1}` : ''}`);
+      line.className = 'unlock-next';
+      el.unlock.append(line, row(`unlocks at Level ${next.level}`));
     }
   }
 
-  return { buildTowerList, update, flash };
+  return { buildTowerList, buildBrief, update, flash };
 }

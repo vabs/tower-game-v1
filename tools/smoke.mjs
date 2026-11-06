@@ -20,36 +20,62 @@ const checks = [];
 const check = (name, ok, detail = '') => { checks.push({ name, ok, detail }); };
 
 try {
-  await page.goto('http://localhost:5199/?level=1');
-  await page.waitForFunction(() => window.__td && window.__td.world, null, { timeout: 10000 });
-  await page.screenshot({ path: `${outDir}/01-loaded.png` });
-
   // Click a tile by tile coords on the canvas.
   const clickTile = async (tx, ty, opts = {}) => {
     const box = await page.locator('#game').boundingBox();
     const sx = box.width / 960, sy = box.height / 528;
     await page.mouse.click(box.x + (tx * 48 + 24) * sx, box.y + (ty * 48 + 24) * sy, opts);
   };
-
+  const screen = () => page.evaluate(() => document.getElementById('screens').hidden ? null : document.getElementById('screens').dataset.screen);
+  const waitScreen = (name) => page.waitForFunction((n) => { const r = document.getElementById('screens'); return !r.hidden && r.dataset.screen === n; }, name, { timeout: 10000 });
   const buttons = page.locator('#hud-tower-list button');
-  check('tower buttons rendered', (await buttons.count()) >= 1, `count=${await buttons.count()}`);
 
+  // ================= campaign flow from a clean slate =================
+  await page.goto('http://localhost:5199/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await waitScreen('start');
+  check('start screen visible', (await screen()) === 'start');
+  check('no Continue on a fresh save', (await page.locator('#btn-continue').count()) === 0);
+  await page.screenshot({ path: `${outDir}/00a-start.png` });
+
+  await page.click('#btn-levels');
+  await waitScreen('level-select');
+  check('level select has 50 levels', (await page.locator('.lvl').count()) === 50);
+  check('level 1 unlocked', await page.locator('.lvl[data-level="1"]').isEnabled());
+  check('level 2 locked', (await page.locator('.lvl[data-level="2"]').getAttribute('data-locked')) === 'true' && (await page.locator('.lvl[data-level="2"]').isDisabled()));
+  check('locked level shows lock sprite', (await page.locator('.lvl[data-level="2"] img[alt="locked"]').count()) === 1);
+  check('boss level marked', (await page.locator('.lvl[data-level="10"] .tag.boss').count()) === 1);
+  check('supply level marked', (await page.locator('.lvl[data-level="6"] img[alt="supply drop"]').count()) === 1);
+  await page.screenshot({ path: `${outDir}/00b-level-select.png` });
+
+  await page.click('.lvl[data-level="1"]');
+  await page.waitForFunction(() => window.__td && window.__td.world && document.getElementById('screens').hidden, null, { timeout: 10000 });
+  check('level 1 started from select', (await page.evaluate(() => window.__td.world.level)) === 1);
+  check('mission brief shown', ((await page.locator('#hud-brief').textContent()) || '').includes('No leaks for Gold'));
+  check('tech unlock tracker shown', ((await page.locator('#hud-unlock').textContent()) || '').includes('Level 2'));
+  await page.screenshot({ path: `${outDir}/01-loaded.png` });
+
+  check('tower buttons rendered', (await buttons.count()) >= 1, `count=${await buttons.count()}`);
   const coins0 = await page.evaluate(() => window.__td.world.coins);
   await buttons.first().click();
   const box = await page.locator('#game').boundingBox();
   await page.mouse.move(box.x + 6 * 48, box.y + 3.5 * 48);
   await page.screenshot({ path: `${outDir}/02-armed-ghost.png` });
+
+  // Esc while armed cancels placement and does NOT pause
+  await page.keyboard.press('Escape');
+  check('Esc cancels armed placement first', (await page.evaluate(() => window.__td.app.armed)) === null && (await screen()) === null);
+
+  await buttons.first().click();
   await clickTile(6, 3);
   const towers1 = await page.evaluate(() => window.__td.world.towers.length);
   const coins1 = await page.evaluate(() => window.__td.world.coins);
   check('tower placed by click', towers1 === 1, `towers=${towers1}`);
   check('coins deducted', coins1 < coins0, `${coins0} -> ${coins1}`);
-
-  // place 2 more (re-arm each time)
   for (const [tx, ty] of [[8, 4]]) { await buttons.first().click(); await clickTile(tx, ty); }
   check('two towers placed', (await page.evaluate(() => window.__td.world.towers.length)) === 2);
 
-  // select a tower
   await clickTile(6, 3);
   await page.waitForTimeout(200);
   const sel = await page.locator('#hud-selected').textContent();
@@ -62,21 +88,81 @@ try {
   check('wave running with enemies', st.phase === 'wave' && st.enemies > 0, JSON.stringify(st));
   await page.screenshot({ path: `${outDir}/04-wave.png` });
 
-  // Fast-forward sim to the end to check overlay.
+  // ---- pause with Esc: sim frozen, analytics visible ----
+  await page.keyboard.press('Escape');
+  await waitScreen('paused');
+  const t0 = await page.evaluate(() => window.__td.world.time);
+  await page.waitForTimeout(700);
+  const t1 = await page.evaluate(() => window.__td.world.time);
+  check('pause freezes the sim', t1 === t0, `${t0} -> ${t1}`);
+  check('pause shows Tower Performance', (await page.locator('[data-panel="towers"] tbody tr').count()) >= 1);
+  check('pause shows Enemy Intel', (await page.locator('[data-panel="enemies"] .intel-card').count()) >= 1);
+  const dmg = await page.locator('[data-panel="towers"] tbody tr').first().locator('td').nth(1).textContent();
+  check('tower damage recorded', Number(dmg) > 0, `damage=${dmg}`);
+  await page.screenshot({ path: `${outDir}/04b-paused.png` });
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => document.getElementById('screens').hidden);
+  await page.waitForTimeout(400);
+  check('resume continues the sim', (await page.evaluate(() => window.__td.world.time)) > t1);
+  // pause button in the top bar
+  await page.click('#hud-pause');
+  await waitScreen('paused');
+  await page.click('#btn-resume');
+  await page.waitForFunction(() => document.getElementById('screens').hidden);
+
+  // ---- finish level 1 through the sim ----
   await page.evaluate(async () => {
     const { step } = await import('/src/sim/world.js');
+    const { startWave, placeTower } = await import('/src/sim/commands.js');
     const w = window.__td.world;
+    w.coins += 1500;
+    for (const [x, y] of [[4, 3], [7, 3], [9, 3], [3, 1], [8, 6], [6, 6], [10, 4]]) placeTower(w, 'ar_turret', x, y);
     for (let i = 0; i < 60 * 60 * 10 && w.phase !== 'won' && w.phase !== 'lost'; i++) {
-      if (w.phase === 'build') { const { startWave } = await import('/src/sim/commands.js'); startWave(w); }
+      if (w.phase === 'build') startWave(w);
       step(w, 1 / 60);
     }
   });
-  await page.waitForTimeout(500);
-  const end = await page.evaluate(() => window.__td.world.phase);
-  const overlayVisible = await page.locator('#overlay').isVisible();
-  check('level ends', end === 'won' || end === 'lost', end);
-  check('end overlay visible', overlayVisible);
+  await waitScreen('level-complete');
+  check('level 1 won', (await page.evaluate(() => window.__td.world.phase)) === 'won');
+  check('level complete shows a medal', (await page.locator('.medal-big[data-medal]').count()) === 1, await page.locator('.medal-name').textContent());
+  check('level complete lists time and unlocks', ((await page.locator('.screen-level-complete').textContent()) || '').includes('Unlocked:'));
   await page.screenshot({ path: `${outDir}/05-end.png` });
+
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('td-save-v1')));
+  check('save written with L2 unlocked and medal', saved.unlockedLevel === 2 && !!saved.medals[1], JSON.stringify({ u: saved.unlockedLevel, m: saved.medals }));
+
+  await page.click('#btn-next');
+  await page.waitForFunction(() => document.getElementById('screens').hidden && window.__td.world.level === 2);
+  check('next level starts level 2', (await page.evaluate(() => window.__td.world.level)) === 2);
+  await page.screenshot({ path: `${outDir}/05b-level2.png` });
+
+  // ---- reload: progress kept ----
+  await page.goto('http://localhost:5199/');
+  await waitScreen('start');
+  check('Continue present after reload', (await page.locator('#btn-continue').count()) === 1, (await page.locator('#btn-continue').textContent()) || '');
+  await page.screenshot({ path: `${outDir}/05c-start-continue.png` });
+  await page.click('#btn-levels');
+  await waitScreen('level-select');
+  check('level 2 unlocked after reload', await page.locator('.lvl[data-level="2"]').isEnabled());
+  check('level 3 still locked', await page.locator('.lvl[data-level="3"]').isDisabled());
+  check('level 1 shows medal badge', (await page.locator('.lvl[data-level="1"] .lvl-badge img').count()) === 1);
+  await page.screenshot({ path: `${outDir}/05d-level-select-progress.png` });
+
+  // Game over: dev jump to a level and drain the base
+  await page.goto('http://localhost:5199/?level=1');
+  await page.waitForFunction(() => window.__td && window.__td.world, null, { timeout: 10000 });
+  check('?level=1 jumps straight into play', (await screen()) === null);
+  await page.evaluate(async () => {
+    const { step } = await import('/src/sim/world.js');
+    const { startWave } = await import('/src/sim/commands.js');
+    const w = window.__td.world;
+    for (let i = 0; i < 60 * 60 * 5 && w.phase !== 'lost'; i++) { if (w.phase === 'build') startWave(w); step(w, 1 / 60); }
+  });
+  await waitScreen('game-over');
+  check('game over screen with retry', (await page.locator('#btn-retry').count()) === 1);
+  await page.screenshot({ path: `${outDir}/05e-game-over.png` });
+  await page.click('#btn-retry');
+  await page.waitForFunction(() => document.getElementById('screens').hidden && window.__td.world.phase === 'build');
 
   // ---- layout: no horizontal overflow, panels and top bar fully visible ----
   const layoutCheck = async (w, h, tag) => {

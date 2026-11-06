@@ -1,0 +1,247 @@
+import { levels } from '../data/levels.js';
+import { getTowerDef } from '../sim/towers.js';
+import { snapshotStats } from '../sim/stats.js';
+import { summarizeTowerStats, summarizeEnemyStats } from './analytics.js';
+import { isLevelUnlocked, hasProgress, summarizeCampaign } from '../core/save.js';
+import { SILVER_MAX_HP_LOST } from '../core/medals.js';
+
+const CHAPTERS = ['Recon', 'Frontline', 'Breakthrough', 'Siege', 'Final Stand'];
+export const MEDAL_LABEL = { gold: 'Gold', silver: 'Silver', bronze: 'Bronze' };
+
+export function formatTime(seconds) {
+  const s = Math.max(0, Math.round(seconds));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+/** Tiny DOM builder: h('div.cls', {attrs}, ...children|strings). */
+function h(spec, attrs, ...kids) {
+  const [tag, ...classes] = spec.split('.');
+  const el = document.createElement(tag || 'div');
+  if (classes.length) el.className = classes.join(' ');
+  if (attrs && typeof attrs === 'object' && !(attrs instanceof Node) && typeof attrs !== 'string') {
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v === false || v == null) continue;
+      if (k === 'onclick') el.addEventListener('click', v);
+      else if (k === 'text') el.textContent = v;
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+  } else if (attrs != null) kids.unshift(attrs);
+  for (const k of kids) if (k != null && k !== false) el.append(k);
+  return el;
+}
+
+export function createScreens(sprites, on) {
+  const root = document.getElementById('screens');
+  let current = null;
+
+  const icon = (key, cls = 'px-icon', alt = '') => {
+    const img = h('img.' + cls, { alt });
+    const s = sprites[key];
+    if (s) img.src = s.src;
+    return img;
+  };
+  const button = (label, handler, { primary = false, id, disabled = false } = {}) =>
+    h('button.btn' + (primary ? '.primary' : ''), { type: 'button', id, onclick: handler, disabled, text: label });
+
+  function mount(name, box, { dim = false } = {}) {
+    root.textContent = '';
+    root.dataset.screen = name;
+    root.classList.toggle('dim', dim);
+    root.append(h('div.screen-box.screen-' + name, null, ...box));
+    root.hidden = false;
+    current = name;
+    root.querySelector('.btn.primary')?.focus({ preventScroll: true });
+  }
+
+  function hide() {
+    root.hidden = true;
+    root.textContent = '';
+    delete root.dataset.screen;
+    current = null;
+  }
+
+  // ---- shared analytics panels (pause + end screens) ----
+  function analyticsPanels(world) {
+    const snap = snapshotStats(world);
+    const towerRows = summarizeTowerStats(snap.towers);
+    const enemyRows = summarizeEnemyStats(snap.enemies);
+
+    const tbody = h('tbody');
+    for (const t of towerRows) {
+      tbody.append(h('tr',
+        h('td.tname', icon(`towers/${t.typeId}_l1`, 'px-icon sm'), h('span', { text: t.name })),
+        h('td', { text: String(t.damage) }),
+        h('td', { text: String(t.kills) }),
+        h('td', { text: String(t.spent) }),
+        h('td', { text: t.dpc.toFixed(2) })));
+    }
+    const towerPanel = h('section.an-panel', { 'data-panel': 'towers' },
+      h('h3', { text: 'Tower Performance' }),
+      towerRows.length
+        ? h('div.an-scroll', h('table.an-table',
+          h('thead', h('tr', ...['Tower', 'Damage', 'Kills', 'Spent', 'Dmg/coin'].map((x) => h('th', { text: x })))), tbody))
+        : h('p.muted', { text: 'No towers built yet.' }));
+
+    const grid = h('div.intel-grid');
+    for (const e of enemyRows) {
+      grid.append(h('div.intel-card' + (e.boss ? '.boss' : ''),
+        icon(e.sprite, 'px-icon md', e.name),
+        h('div.intel-main',
+          h('div.intel-name', { text: e.name + (e.type === 'air' ? ' (air)' : '') }),
+          h('div.intel-line', { text: `HP ${e.hp}  Spd ${e.speed}` }),
+          h('div.intel-line', { text: `Seen ${e.seen}  Killed ${e.killed}  Leaked ${e.leaked}` }))));
+    }
+    const enemyPanel = h('section.an-panel', { 'data-panel': 'enemies' },
+      h('h3', { text: 'Enemy Intel' }),
+      enemyRows.length ? h('div.an-scroll', grid) : h('p.muted', { text: 'No enemies encountered yet.' }));
+    return h('div.an-panels', towerPanel, enemyPanel);
+  }
+
+  // ---- Start ----
+  function showStart(save) {
+    const progress = hasProgress(save);
+    let armedReset = false;
+    const newBtn = button('New Campaign', () => {
+      if (progress && !armedReset) {
+        armedReset = true;
+        newBtn.textContent = 'Erase progress? Click again';
+        newBtn.classList.add('danger');
+        return;
+      }
+      on.onNewCampaign();
+    }, { id: 'btn-new' });
+    mount('start', [
+      h('div.title-art', icon('towers/gatling_turret_l5', 'px-icon xl'), icon('towers/rail_autocannon_l5', 'px-icon xl'), icon('towers/aa_mg_l5', 'px-icon xl')),
+      h('h1.title', { text: 'TOWER DEFENCE' }),
+      h('p.subtitle', { text: '50 missions. 30 towers. Hold the line.' }),
+      h('div.menu',
+        progress ? button(`Continue (Level ${save.unlockedLevel})`, () => on.onContinue(), { primary: true, id: 'btn-continue' }) : null,
+        newBtn,
+        button('Level Select', () => on.onLevelSelect(), { id: 'btn-levels', primary: !progress })),
+    ], { dim: false });
+  }
+
+  // ---- Level Select ----
+  function showLevelSelect(save) {
+    const summary = summarizeCampaign(save);
+    const rows = [];
+    for (let c = 0; c < 5; c++) {
+      const row = h('div.chapter-row');
+      for (let i = 1; i <= 10; i++) {
+        const id = c * 10 + i;
+        const lv = levels[id - 1];
+        const unlocked = isLevelUnlocked(save, id);
+        const medal = save.medals[id];
+        const tags = [];
+        if (lv.boss) tags.push('boss');
+        if (lv.supplyDropAfterWave != null) tags.push('supply');
+        const title = [`Level ${id}`, `${lv.mapType} map`, `${lv.combatWaves} waves`, lv.boss ? 'boss' : null,
+          lv.supplyDropAfterWave != null ? 'supply drop' : null, unlocked ? null : 'locked'].filter(Boolean).join(', ');
+        const cell = h('button.lvl' + (unlocked ? '' : '.locked') + (medal ? '.cleared' : '') + (lv.boss ? '.is-boss' : ''), {
+          type: 'button', 'data-level': id, 'data-locked': unlocked ? 'false' : 'true', 'data-medal': medal, title,
+          disabled: !unlocked, onclick: () => on.onStartLevel(id),
+        },
+        h('span.lvl-num', { text: String(id) }),
+        h('span.lvl-badge', unlocked ? (medal ? icon(`ui/medal_${medal}`, 'px-icon sm', MEDAL_LABEL[medal]) : null) : icon('ui/lock', 'px-icon sm', 'locked')),
+        h('span.lvl-tags',
+          lv.boss ? h('span.tag.boss', { text: 'BOSS' }) : null,
+          lv.supplyDropAfterWave != null ? icon('ui/crate', 'px-icon xs', 'supply drop') : null));
+        row.append(cell);
+      }
+      rows.push(h('div.chapter', h('h3', { text: `Chapter ${c + 1}: ${CHAPTERS[c]}` }), row));
+    }
+    mount('level-select', [
+      h('div.screen-head',
+        h('h2', { text: 'Level Select' }),
+        h('div.medal-count',
+          ...['gold', 'silver', 'bronze'].map((m) => h('span', icon(`ui/medal_${m}`, 'px-icon sm', m), ` ${summary[m]}`))),
+        button('Back', () => on.onToStart(), { id: 'btn-back' })),
+      h('div.chapters', ...rows),
+      h('p.legend.muted', 'BOSS = boss wave. Crate = supply drop wave. Gold: no HP lost. Silver: 5 or less.'),
+    ]);
+  }
+
+  // ---- Pause ----
+  function showPause(world) {
+    mount('paused', [
+      h('h2', { text: 'Paused' }),
+      h('p.muted', { text: `Level ${world.level}  Wave ${Math.min(world.waveIndex + 1, world.waves.length)}/${world.waves.length}  HP ${world.hp}/${world.maxHp}  Coins ${world.coins}` }),
+      h('div.btn-row',
+        button('Resume', () => on.onResume(), { primary: true, id: 'btn-resume' }),
+        button('Restart', () => on.onRestart(), { id: 'btn-restart' }),
+        button('Level Select', () => on.onLevelSelect(), { id: 'btn-levels' })),
+      analyticsPanels(world),
+    ], { dim: true });
+  }
+
+  // ---- Level Complete ----
+  function showLevelComplete({ world, medal, hpLost, improved, nextUnlocks }) {
+    const hint = medal === 'gold' ? null
+      : medal === 'silver' ? 'Gold needs no HP lost.'
+        : `Silver needs ${SILVER_MAX_HP_LOST} or less HP lost, Gold none.`;
+    mount('level-complete', [
+      h('h2', { text: `Level ${world.level} Cleared` }),
+      h('div.medal-big', { 'data-medal': medal }, icon(`ui/medal_${medal}`, 'px-icon xl', MEDAL_LABEL[medal]),
+        h('div.medal-name', { text: `${MEDAL_LABEL[medal]} Medal${improved ? '  (new best)' : ''}` })),
+      hint ? h('p.muted', { text: hint }) : null,
+      h('div.stat-row',
+        stat('Time', formatTime(world.time)),
+        stat('HP lost', `${hpLost} / ${world.maxHp}`),
+        stat('Leaks', String(Object.values(world.stats.enemies).reduce((a, e) => a + e.leaked, 0))),
+        stat('Spare coins', String(world.coins))),
+      nextUnlocks.length
+        ? h('div.unlock-line', { 'data-testid': 'unlocked' }, 'Unlocked: ', ...nextUnlocks.flatMap((id) => [icon(`towers/${id}_l1`, 'px-icon sm'), ` ${getTowerDef(id)?.name ?? id}  `]))
+        : null,
+      h('div.btn-row',
+        button('Next Level', () => on.onNext(), { primary: true, id: 'btn-next' }),
+        button('Replay', () => on.onRestart(), { id: 'btn-replay' }),
+        button('Level Select', () => on.onLevelSelect(), { id: 'btn-levels' })),
+      analyticsPanels(world),
+    ], { dim: true });
+  }
+
+  // ---- Game Over ----
+  function showGameOver(world) {
+    const leaks = Object.values(world.stats.enemies).reduce((a, e) => a + e.leaked, 0);
+    mount('game-over', [
+      h('h2.bad', { text: 'Base Overrun' }),
+      h('p', { text: `Your base fell on wave ${Math.min(world.waveIndex + 1, world.waves.length)} of ${world.waves.length}.` }),
+      h('div.stat-row',
+        stat('HP lost', `${world.stats.hpLost} / ${world.maxHp}`),
+        stat('Time', formatTime(world.time)),
+        stat('Wave reached', `${Math.min(world.waveIndex + 1, world.waves.length)}`),
+        stat('Leaks', String(leaks))),
+      h('div.btn-row',
+        button('Retry', () => on.onRestart(), { primary: true, id: 'btn-retry' }),
+        button('Level Select', () => on.onLevelSelect(), { id: 'btn-levels' })),
+      analyticsPanels(world),
+    ], { dim: true });
+  }
+
+  // ---- Game End ----
+  function showGameEnd({ world, save, medal }) {
+    const sum = summarizeCampaign(save);
+    mount('game-end', [
+      h('h1.title', { text: 'CAMPAIGN COMPLETE' }),
+      h('p', { text: `Level 50 cleared with a ${MEDAL_LABEL[medal]} medal.` }),
+      h('div.stat-row',
+        ...['gold', 'silver', 'bronze'].map((m) => h('div.stat', icon(`ui/medal_${m}`, 'px-icon md', m), h('b', { text: String(sum[m]) }), h('span', { text: MEDAL_LABEL[m] }))),
+        stat('Levels cleared', `${sum.cleared} / ${levels.length}`),
+        stat('Play time', formatTime(sum.playTime))),
+      h('section.an-panel', { 'data-panel': 'best-towers' }, h('h3', { text: 'Best Towers' }),
+        sum.bestTowers.length
+          ? h('div.best-towers', ...sum.bestTowers.map((t) => h('div.best',
+            icon(`towers/${t.typeId}_l1`, 'px-icon md'),
+            h('div', h('b', { text: getTowerDef(t.typeId)?.name ?? t.typeId }), h('div.muted', { text: `${Math.round(t.damage)} damage, ${t.kills} kills` })))))
+          : h('p.muted', { text: 'No data.' })),
+      h('div.btn-row',
+        button('Level Select', () => on.onLevelSelect(), { primary: true, id: 'btn-levels' }),
+        button('Main Menu', () => on.onToStart(), { id: 'btn-menu' })),
+      h('details.final-run', h('summary', { text: 'Level 50 recap' }), analyticsPanels(world)),
+    ], { dim: true });
+  }
+
+  const stat = (label, value) => h('div.stat', h('b', { text: value }), h('span', { text: label }));
+
+  return { showStart, showLevelSelect, showPause, showLevelComplete, showGameOver, showGameEnd, hide, get current() { return current; } };
+}
