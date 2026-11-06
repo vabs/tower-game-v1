@@ -2,7 +2,9 @@ import { createRng } from '../core/rng.js';
 import { levels, getUnlocksForLevel } from '../data/levels.js';
 import { maps, mapIdForLevel } from '../data/maps.js';
 import { loadMap } from './map.js';
+import { buildWaves } from '../data/waves.js';
 import { updateEnemies } from './enemies.js';
+import { updateSpawner } from './spawner.js';
 
 export const STEP = 1 / 60;
 export const STARTING_HP = 100;
@@ -41,8 +43,9 @@ export function createWorld(levelId, { seed = 1, unlocked } = {}) {
     level: levelId,
     seed,
     waveIndex: 0,
-    waves: [],
+    waves: buildWaves(levelId),
     countdown: null,
+    countdownLength: WAVE_COUNTDOWN,
     spawner: null,
     coins: startingCoins(levelId),
     hp: STARTING_HP,
@@ -63,6 +66,7 @@ export function createWorld(levelId, { seed = 1, unlocked } = {}) {
 export function step(world, dt = STEP) {
   if (world.phase === 'won' || world.phase === 'lost') return;
   world.time += dt;
+  updateSpawner(world, dt);
   updateEnemies(world, dt);
   if (world.hp <= 0) {
     world.phase = 'lost';
