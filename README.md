@@ -2,6 +2,8 @@
 
 A browser tower-defence game: 50 levels, 30 towers with 5 upgrade levels each, 20 enemy types (ground and air), bosses, medals and a local save. Modern-military pixel-art theme, Canvas playfield with DOM panels. No server, no network: the production build is one HTML file.
 
+**Play online:** https://vabs.github.io/tower-game-v1/ (deployed from `main` by `.github/workflows/pages.yml`).
+
 ## Run it
 
 ```bash
