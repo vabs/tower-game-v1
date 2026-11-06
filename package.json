@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test:watch": "vitest",
     "smoke": "node tools/smoke.mjs",
-    "shots": "node tools/level-shots.mjs"
+    "shots": "node tools/level-shots.mjs",
+    "balance": "node tools/balance.js"
   },
   "devDependencies": {
     "playwright-core": "1.65.0",

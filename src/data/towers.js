@@ -5,10 +5,10 @@ export const towers = [
     family: 'assault',
     levels: [
       { level: 1, damage: 8, rate: 2.0, range: 4.0, cost: 80 },
-      { level: 2, damage: 10, rate: 2.2, range: 4.2, cost: 130 },
-      { level: 3, damage: 12, rate: 2.4, range: 4.5, cost: 190 },
-      { level: 4, damage: 15, rate: 2.6, range: 5.0, cost: 270 },
-      { level: 5, damage: 18, rate: 2.8, range: 5.5, cost: 380 },
+      { level: 2, damage: 10, rate: 2.2, range: 4.2, cost: 40 },
+      { level: 3, damage: 12, rate: 2.4, range: 4.5, cost: 45 },
+      { level: 4, damage: 15, rate: 2.6, range: 5.0, cost: 75 },
+      { level: 5, damage: 18, rate: 2.8, range: 5.5, cost: 90 },
     ],
   },
   {
@@ -17,10 +17,10 @@ export const towers = [
     family: 'assault',
     levels: [
       { level: 1, damage: 4, rate: 4.0, range: 3.0, cost: 70 },
-      { level: 2, damage: 5, rate: 4.3, range: 3.2, cost: 120 },
-      { level: 3, damage: 6, rate: 4.6, range: 3.5, cost: 180 },
-      { level: 4, damage: 8, rate: 5.0, range: 3.8, cost: 260 },
-      { level: 5, damage: 10, rate: 5.5, range: 4.0, cost: 370 },
+      { level: 2, damage: 5, rate: 4.3, range: 3.2, cost: 30 },
+      { level: 3, damage: 6, rate: 4.6, range: 3.5, cost: 40 },
+      { level: 4, damage: 8, rate: 5.0, range: 3.8, cost: 80 },
+      { level: 5, damage: 10, rate: 5.5, range: 4.0, cost: 95 },
     ],
   },
   {
@@ -29,10 +29,10 @@ export const towers = [
     family: 'assault',
     levels: [
       { level: 1, damage: 10, rate: 1.8, range: 4.5, cost: 120 },
-      { level: 2, damage: 12, rate: 1.9, range: 4.7, cost: 180 },
-      { level: 3, damage: 14, rate: 2.0, range: 5.0, cost: 260 },
-      { level: 4, damage: 18, rate: 2.2, range: 5.3, cost: 360 },
-      { level: 5, damage: 22, rate: 2.4, range: 5.5, cost: 520 },
+      { level: 2, damage: 12, rate: 1.9, range: 4.7, cost: 40 },
+      { level: 3, damage: 14, rate: 2.0, range: 5.0, cost: 50 },
+      { level: 4, damage: 18, rate: 2.2, range: 5.3, cost: 105 },
+      { level: 5, damage: 22, rate: 2.4, range: 5.5, cost: 120 },
     ],
   },
   {
@@ -42,10 +42,10 @@ export const towers = [
     special: { spoolUp: 1.0 },
     levels: [
       { level: 1, damage: 6, rate: 3.0, range: 4.5, cost: 150 },
-      { level: 2, damage: 7, rate: 3.5, range: 4.7, cost: 230 },
-      { level: 3, damage: 8, rate: 4.0, range: 5.0, cost: 330 },
-      { level: 4, damage: 10, rate: 4.8, range: 5.2, cost: 470 },
-      { level: 5, damage: 12, rate: 5.5, range: 5.5, cost: 660 },
+      { level: 2, damage: 7, rate: 3.5, range: 4.7, cost: 70 },
+      { level: 3, damage: 8, rate: 4.0, range: 5.0, cost: 85 },
+      { level: 4, damage: 10, rate: 4.8, range: 5.2, cost: 175 },
+      { level: 5, damage: 12, rate: 5.5, range: 5.5, cost: 210 },
     ],
   },
   {
@@ -54,10 +54,10 @@ export const towers = [
     family: 'assault',
     levels: [
       { level: 1, damage: 28, rate: 1.0, range: 6.0, cost: 220, pierce: 2 },
-      { level: 2, damage: 32, rate: 1.1, range: 6.2, cost: 330, pierce: 2 },
-      { level: 3, damage: 38, rate: 1.2, range: 6.5, cost: 480, pierce: 3 },
-      { level: 4, damage: 48, rate: 1.3, range: 6.7, cost: 680, pierce: 3 },
-      { level: 5, damage: 60, rate: 1.4, range: 7.0, cost: 950, pierce: 4 },
+      { level: 2, damage: 32, rate: 1.1, range: 6.2, cost: 70, pierce: 2 },
+      { level: 3, damage: 38, rate: 1.2, range: 6.5, cost: 210, pierce: 3 },
+      { level: 4, damage: 48, rate: 1.3, range: 6.7, cost: 210, pierce: 3 },
+      { level: 5, damage: 60, rate: 1.4, range: 7.0, cost: 475, pierce: 4 },
     ],
   },
   {
@@ -66,10 +66,10 @@ export const towers = [
     family: 'precision',
     levels: [
       { level: 1, damage: 18, rate: 1.0, range: 5.5, cost: 110, crit: 0.05 },
-      { level: 2, damage: 22, rate: 1.1, range: 5.8, cost: 170, crit: 0.06 },
-      { level: 3, damage: 26, rate: 1.2, range: 6.2, cost: 250, crit: 0.07 },
-      { level: 4, damage: 32, rate: 1.3, range: 6.6, cost: 360, crit: 0.08 },
-      { level: 5, damage: 38, rate: 1.4, range: 7.0, cost: 500, crit: 0.09 },
+      { level: 2, damage: 22, rate: 1.1, range: 5.8, cost: 50, crit: 0.06 },
+      { level: 3, damage: 26, rate: 1.2, range: 6.2, cost: 60, crit: 0.07 },
+      { level: 4, damage: 32, rate: 1.3, range: 6.6, cost: 95, crit: 0.08 },
+      { level: 5, damage: 38, rate: 1.4, range: 7.0, cost: 110, crit: 0.09 },
     ],
   },
   {
@@ -78,10 +78,10 @@ export const towers = [
     family: 'precision',
     levels: [
       { level: 1, damage: 40, rate: 0.6, range: 7.0, cost: 180, crit: 0.10 },
-      { level: 2, damage: 48, rate: 0.65, range: 7.3, cost: 260, crit: 0.11 },
-      { level: 3, damage: 58, rate: 0.7, range: 7.6, cost: 380, crit: 0.12 },
-      { level: 4, damage: 70, rate: 0.75, range: 8.0, cost: 540, crit: 0.13 },
-      { level: 5, damage: 85, rate: 0.8, range: 8.5, cost: 760, crit: 0.14 },
+      { level: 2, damage: 48, rate: 0.65, range: 7.3, cost: 70, crit: 0.11 },
+      { level: 3, damage: 58, rate: 0.7, range: 7.6, cost: 95, crit: 0.12 },
+      { level: 4, damage: 70, rate: 0.75, range: 8.0, cost: 130, crit: 0.13 },
+      { level: 5, damage: 85, rate: 0.8, range: 8.5, cost: 175, crit: 0.14 },
     ],
   },
   {
@@ -90,10 +90,10 @@ export const towers = [
     family: 'precision',
     levels: [
       { level: 1, damage: 55, rate: 0.55, range: 6.5, cost: 220 },
-      { level: 2, damage: 66, rate: 0.58, range: 6.8, cost: 320 },
-      { level: 3, damage: 80, rate: 0.62, range: 7.2, cost: 470 },
-      { level: 4, damage: 96, rate: 0.66, range: 7.6, cost: 660 },
-      { level: 5, damage: 115, rate: 0.7, range: 8.0, cost: 920 },
+      { level: 2, damage: 66, rate: 0.58, range: 6.8, cost: 75 },
+      { level: 3, damage: 80, rate: 0.62, range: 7.2, cost: 110 },
+      { level: 4, damage: 96, rate: 0.66, range: 7.6, cost: 140 },
+      { level: 5, damage: 115, rate: 0.7, range: 8.0, cost: 180 },
     ],
   },
   {
@@ -102,10 +102,10 @@ export const towers = [
     family: 'precision',
     levels: [
       { level: 1, damage: 90, rate: 0.4, range: 7.0, cost: 320 },
-      { level: 2, damage: 110, rate: 0.42, range: 7.3, cost: 460 },
-      { level: 3, damage: 135, rate: 0.44, range: 7.6, cost: 660 },
-      { level: 4, damage: 165, rate: 0.46, range: 8.0, cost: 920 },
-      { level: 5, damage: 200, rate: 0.48, range: 8.4, cost: 1280 },
+      { level: 2, damage: 110, rate: 0.42, range: 7.3, cost: 115 },
+      { level: 3, damage: 135, rate: 0.44, range: 7.6, cost: 155 },
+      { level: 4, damage: 165, rate: 0.46, range: 8.0, cost: 200 },
+      { level: 5, damage: 200, rate: 0.48, range: 8.4, cost: 250 },
     ],
   },
   {
@@ -114,10 +114,10 @@ export const towers = [
     family: 'precision',
     levels: [
       { level: 1, damage: 75, rate: 0.5, range: 8.5, cost: 300, crit: 0.08 },
-      { level: 2, damage: 90, rate: 0.52, range: 8.8, cost: 440, crit: 0.09 },
-      { level: 3, damage: 110, rate: 0.55, range: 9.2, cost: 640, crit: 0.10 },
-      { level: 4, damage: 135, rate: 0.58, range: 9.6, cost: 900, crit: 0.11 },
-      { level: 5, damage: 165, rate: 0.6, range: 10.0, cost: 1260, crit: 0.12 },
+      { level: 2, damage: 90, rate: 0.52, range: 8.8, cost: 100, crit: 0.09 },
+      { level: 3, damage: 110, rate: 0.55, range: 9.2, cost: 150, crit: 0.10 },
+      { level: 4, damage: 135, rate: 0.58, range: 9.6, cost: 200, crit: 0.11 },
+      { level: 5, damage: 165, rate: 0.6, range: 10.0, cost: 245, crit: 0.12 },
     ],
   },
   {
@@ -126,10 +126,10 @@ export const towers = [
     family: 'explosive',
     levels: [
       { level: 1, damage: 20, rate: 1.2, range: 4.5, cost: 120, splash: 1.0 },
-      { level: 2, damage: 24, rate: 1.25, range: 4.7, cost: 180, splash: 1.1 },
-      { level: 3, damage: 30, rate: 1.3, range: 5.0, cost: 260, splash: 1.2 },
-      { level: 4, damage: 38, rate: 1.35, range: 5.2, cost: 370, splash: 1.3 },
-      { level: 5, damage: 46, rate: 1.4, range: 5.5, cost: 520, splash: 1.4 },
+      { level: 2, damage: 24, rate: 1.25, range: 4.7, cost: 45, splash: 1.1 },
+      { level: 3, damage: 30, rate: 1.3, range: 5.0, cost: 70, splash: 1.2 },
+      { level: 4, damage: 38, rate: 1.35, range: 5.2, cost: 100, splash: 1.3 },
+      { level: 5, damage: 46, rate: 1.4, range: 5.5, cost: 120, splash: 1.4 },
     ],
   },
   {
@@ -138,10 +138,10 @@ export const towers = [
     family: 'explosive',
     levels: [
       { level: 1, damage: 45, rate: 0.6, range: 6.0, cost: 200, splash: 1.6 },
-      { level: 2, damage: 55, rate: 0.62, range: 6.2, cost: 300, splash: 1.7 },
-      { level: 3, damage: 68, rate: 0.65, range: 6.5, cost: 440, splash: 1.9 },
-      { level: 4, damage: 85, rate: 0.68, range: 6.8, cost: 620, splash: 2.1 },
-      { level: 5, damage: 105, rate: 0.7, range: 7.0, cost: 880, splash: 2.3 },
+      { level: 2, damage: 55, rate: 0.62, range: 6.2, cost: 75, splash: 1.7 },
+      { level: 3, damage: 68, rate: 0.65, range: 6.5, cost: 125, splash: 1.9 },
+      { level: 4, damage: 85, rate: 0.68, range: 6.8, cost: 175, splash: 2.1 },
+      { level: 5, damage: 105, rate: 0.7, range: 7.0, cost: 215, splash: 2.3 },
     ],
   },
   {
@@ -150,10 +150,10 @@ export const towers = [
     family: 'explosive',
     levels: [
       { level: 1, damage: 80, rate: 0.45, range: 6.2, cost: 320, splash: 2.0 },
-      { level: 2, damage: 96, rate: 0.48, range: 6.5, cost: 470, splash: 2.2 },
-      { level: 3, damage: 118, rate: 0.5, range: 6.8, cost: 680, splash: 2.4 },
-      { level: 4, damage: 145, rate: 0.52, range: 7.1, cost: 960, splash: 2.6 },
-      { level: 5, damage: 180, rate: 0.55, range: 7.4, cost: 1340, splash: 2.8 },
+      { level: 2, damage: 96, rate: 0.48, range: 6.5, cost: 140, splash: 2.2 },
+      { level: 3, damage: 118, rate: 0.5, range: 6.8, cost: 195, splash: 2.4 },
+      { level: 4, damage: 145, rate: 0.52, range: 7.1, cost: 260, splash: 2.6 },
+      { level: 5, damage: 180, rate: 0.55, range: 7.4, cost: 385, splash: 2.8 },
     ],
   },
   {
@@ -162,10 +162,10 @@ export const towers = [
     family: 'explosive',
     levels: [
       { level: 1, damage: 12, rate: 2.4, range: 5.2, cost: 150, splash: 0.8 },
-      { level: 2, damage: 14, rate: 2.6, range: 5.4, cost: 220, splash: 0.85 },
-      { level: 3, damage: 16, rate: 2.8, range: 5.6, cost: 320, splash: 0.9 },
-      { level: 4, damage: 19, rate: 3.0, range: 5.8, cost: 460, splash: 1.0 },
-      { level: 5, damage: 23, rate: 3.2, range: 6.0, cost: 650, splash: 1.1 },
+      { level: 2, damage: 14, rate: 2.6, range: 5.4, cost: 55, splash: 0.85 },
+      { level: 3, damage: 16, rate: 2.8, range: 5.6, cost: 65, splash: 0.9 },
+      { level: 4, damage: 19, rate: 3.0, range: 5.8, cost: 100, splash: 1.0 },
+      { level: 5, damage: 23, rate: 3.2, range: 6.0, cost: 140, splash: 1.1 },
     ],
   },
   {
@@ -174,10 +174,10 @@ export const towers = [
     family: 'explosive',
     levels: [
       { level: 1, damage: 60, rate: 0.6, range: 6.5, cost: 280, splash: 1.8 },
-      { level: 2, damage: 72, rate: 0.62, range: 6.8, cost: 400, splash: 2.0 },
-      { level: 3, damage: 88, rate: 0.65, range: 7.1, cost: 580, splash: 2.2 },
-      { level: 4, damage: 108, rate: 0.68, range: 7.4, cost: 820, splash: 2.4 },
-      { level: 5, damage: 132, rate: 0.7, range: 7.7, cost: 1160, splash: 2.6 },
+      { level: 2, damage: 72, rate: 0.62, range: 6.8, cost: 110, splash: 2.0 },
+      { level: 3, damage: 88, rate: 0.65, range: 7.1, cost: 165, splash: 2.2 },
+      { level: 4, damage: 108, rate: 0.68, range: 7.4, cost: 225, splash: 2.4 },
+      { level: 5, damage: 132, rate: 0.7, range: 7.7, cost: 285, splash: 2.6 },
     ],
   },
   {
@@ -186,10 +186,10 @@ export const towers = [
     family: 'control',
     levels: [
       { level: 1, damage: 4, rate: 3.0, range: 3.5, cost: 100, slow: 0.20, slowDuration: 1.5 },
-      { level: 2, damage: 5, rate: 3.2, range: 3.7, cost: 150, slow: 0.24, slowDuration: 1.6 },
-      { level: 3, damage: 6, rate: 3.4, range: 4.0, cost: 220, slow: 0.28, slowDuration: 1.7 },
-      { level: 4, damage: 8, rate: 3.6, range: 4.2, cost: 320, slow: 0.32, slowDuration: 1.8 },
-      { level: 5, damage: 10, rate: 3.8, range: 4.5, cost: 450, slow: 0.36, slowDuration: 2.0 },
+      { level: 2, damage: 5, rate: 3.2, range: 3.7, cost: 55, slow: 0.24, slowDuration: 1.6 },
+      { level: 3, damage: 6, rate: 3.4, range: 4.0, cost: 70, slow: 0.28, slowDuration: 1.7 },
+      { level: 4, damage: 8, rate: 3.6, range: 4.2, cost: 125, slow: 0.32, slowDuration: 1.8 },
+      { level: 5, damage: 10, rate: 3.8, range: 4.5, cost: 155, slow: 0.36, slowDuration: 2.0 },
     ],
   },
   {
@@ -198,10 +198,10 @@ export const towers = [
     family: 'control',
     levels: [
       { level: 1, damage: 6, rate: 1.6, range: 4.5, cost: 130, burnDps: 4, burnDuration: 2.0 },
-      { level: 2, damage: 7, rate: 1.7, range: 4.7, cost: 190, burnDps: 5, burnDuration: 2.2 },
-      { level: 3, damage: 9, rate: 1.8, range: 5.0, cost: 270, burnDps: 6, burnDuration: 2.4 },
-      { level: 4, damage: 11, rate: 1.9, range: 5.3, cost: 380, burnDps: 8, burnDuration: 2.6 },
-      { level: 5, damage: 14, rate: 2.0, range: 5.5, cost: 540, burnDps: 10, burnDuration: 3.0 },
+      { level: 2, damage: 7, rate: 1.7, range: 4.7, cost: 40, burnDps: 5, burnDuration: 2.2 },
+      { level: 3, damage: 9, rate: 1.8, range: 5.0, cost: 70, burnDps: 6, burnDuration: 2.4 },
+      { level: 4, damage: 11, rate: 1.9, range: 5.3, cost: 90, burnDps: 8, burnDuration: 2.6 },
+      { level: 5, damage: 14, rate: 2.0, range: 5.5, cost: 120, burnDps: 10, burnDuration: 3.0 },
     ],
   },
   {
@@ -210,10 +210,10 @@ export const towers = [
     family: 'control',
     levels: [
       { level: 1, damage: 10, rate: 1.0, range: 4.0, cost: 160, stun: 0.3 },
-      { level: 2, damage: 12, rate: 1.1, range: 4.2, cost: 230, stun: 0.35 },
-      { level: 3, damage: 15, rate: 1.2, range: 4.5, cost: 330, stun: 0.4 },
-      { level: 4, damage: 19, rate: 1.3, range: 4.7, cost: 480, stun: 0.45 },
-      { level: 5, damage: 24, rate: 1.4, range: 5.0, cost: 680, stun: 0.5 },
+      { level: 2, damage: 12, rate: 1.1, range: 4.2, cost: 80, stun: 0.35 },
+      { level: 3, damage: 15, rate: 1.2, range: 4.5, cost: 135, stun: 0.4 },
+      { level: 4, damage: 19, rate: 1.3, range: 4.7, cost: 195, stun: 0.45 },
+      { level: 5, damage: 24, rate: 1.4, range: 5.0, cost: 285, stun: 0.5 },
     ],
   },
   {
@@ -222,10 +222,10 @@ export const towers = [
     family: 'control',
     levels: [
       { level: 1, damage: 8, rate: 1.4, range: 4.5, cost: 170, chains: 2, chainSlow: 0.15, chainSlowDuration: 1.2 },
-      { level: 2, damage: 10, rate: 1.5, range: 4.7, cost: 250, chains: 2, chainSlow: 0.18, chainSlowDuration: 1.3 },
-      { level: 3, damage: 12, rate: 1.6, range: 5.0, cost: 360, chains: 3, chainSlow: 0.20, chainSlowDuration: 1.4 },
-      { level: 4, damage: 15, rate: 1.7, range: 5.2, cost: 520, chains: 3, chainSlow: 0.24, chainSlowDuration: 1.5 },
-      { level: 5, damage: 19, rate: 1.8, range: 5.5, cost: 740, chains: 4, chainSlow: 0.28, chainSlowDuration: 1.6 },
+      { level: 2, damage: 10, rate: 1.5, range: 4.7, cost: 85, chains: 2, chainSlow: 0.18, chainSlowDuration: 1.3 },
+      { level: 3, damage: 12, rate: 1.6, range: 5.0, cost: 235, chains: 3, chainSlow: 0.20, chainSlowDuration: 1.4 },
+      { level: 4, damage: 15, rate: 1.7, range: 5.2, cost: 225, chains: 3, chainSlow: 0.24, chainSlowDuration: 1.5 },
+      { level: 5, damage: 19, rate: 1.8, range: 5.5, cost: 605, chains: 4, chainSlow: 0.28, chainSlowDuration: 1.6 },
     ],
   },
   {
@@ -234,10 +234,10 @@ export const towers = [
     family: 'control',
     levels: [
       { level: 1, damage: 3, rate: 2.0, range: 4.0, cost: 180, fieldSlow: 0.12, fieldRadius: 1.5, fieldDuration: 2.0 },
-      { level: 2, damage: 4, rate: 2.1, range: 4.2, cost: 260, fieldSlow: 0.14, fieldRadius: 1.5, fieldDuration: 2.2 },
-      { level: 3, damage: 5, rate: 2.2, range: 4.5, cost: 380, fieldSlow: 0.16, fieldRadius: 1.5, fieldDuration: 2.4 },
-      { level: 4, damage: 6, rate: 2.3, range: 4.7, cost: 540, fieldSlow: 0.18, fieldRadius: 1.5, fieldDuration: 2.6 },
-      { level: 5, damage: 8, rate: 2.4, range: 5.0, cost: 780, fieldSlow: 0.20, fieldRadius: 1.5, fieldDuration: 3.0 },
+      { level: 2, damage: 4, rate: 2.1, range: 4.2, cost: 115, fieldSlow: 0.14, fieldRadius: 1.5, fieldDuration: 2.2 },
+      { level: 3, damage: 5, rate: 2.2, range: 4.5, cost: 150, fieldSlow: 0.16, fieldRadius: 1.5, fieldDuration: 2.4 },
+      { level: 4, damage: 6, rate: 2.3, range: 4.7, cost: 180, fieldSlow: 0.18, fieldRadius: 1.5, fieldDuration: 2.6 },
+      { level: 5, damage: 8, rate: 2.4, range: 5.0, cost: 385, fieldSlow: 0.20, fieldRadius: 1.5, fieldDuration: 3.0 },
     ],
   },
   {
@@ -246,10 +246,10 @@ export const towers = [
     family: 'support',
     levels: [
       { level: 1, damage: 4, rate: 1.6, range: 4.5, cost: 150, damageBoost: 0.08, boostDuration: 2.0 },
-      { level: 2, damage: 5, rate: 1.7, range: 4.7, cost: 220, damageBoost: 0.09, boostDuration: 2.2 },
-      { level: 3, damage: 6, rate: 1.8, range: 5.0, cost: 320, damageBoost: 0.10, boostDuration: 2.4 },
-      { level: 4, damage: 8, rate: 1.9, range: 5.3, cost: 460, damageBoost: 0.12, boostDuration: 2.6 },
-      { level: 5, damage: 10, rate: 2.0, range: 5.5, cost: 660, damageBoost: 0.14, boostDuration: 3.0 },
+      { level: 2, damage: 5, rate: 1.7, range: 4.7, cost: 60, damageBoost: 0.09, boostDuration: 2.2 },
+      { level: 3, damage: 6, rate: 1.8, range: 5.0, cost: 90, damageBoost: 0.10, boostDuration: 2.4 },
+      { level: 4, damage: 8, rate: 1.9, range: 5.3, cost: 150, damageBoost: 0.12, boostDuration: 2.6 },
+      { level: 5, damage: 10, rate: 2.0, range: 5.5, cost: 215, damageBoost: 0.14, boostDuration: 3.0 },
     ],
   },
   {
@@ -258,10 +258,10 @@ export const towers = [
     family: 'support',
     levels: [
       { level: 1, damage: 2, rate: 1.2, range: 3.5, cost: 180, auraRange: 2.0, fireRateBoost: 0.08 },
-      { level: 2, damage: 2, rate: 1.3, range: 3.7, cost: 260, auraRange: 2.2, fireRateBoost: 0.10 },
-      { level: 3, damage: 3, rate: 1.4, range: 4.0, cost: 380, auraRange: 2.4, fireRateBoost: 0.12 },
-      { level: 4, damage: 4, rate: 1.5, range: 4.2, cost: 540, auraRange: 2.6, fireRateBoost: 0.14 },
-      { level: 5, damage: 5, rate: 1.6, range: 4.5, cost: 780, auraRange: 2.8, fireRateBoost: 0.16 },
+      { level: 2, damage: 2, rate: 1.3, range: 3.7, cost: 110, auraRange: 2.2, fireRateBoost: 0.10 },
+      { level: 3, damage: 3, rate: 1.4, range: 4.0, cost: 135, auraRange: 2.4, fireRateBoost: 0.12 },
+      { level: 4, damage: 4, rate: 1.5, range: 4.2, cost: 170, auraRange: 2.6, fireRateBoost: 0.14 },
+      { level: 5, damage: 5, rate: 1.6, range: 4.5, cost: 205, auraRange: 2.8, fireRateBoost: 0.16 },
     ],
   },
   {
@@ -270,10 +270,10 @@ export const towers = [
     family: 'support',
     levels: [
       { level: 1, damage: 2, rate: 1.0, range: 4.0, cost: 200, rangeBoost: 0.06 },
-      { level: 2, damage: 2, rate: 1.1, range: 4.2, cost: 290, rangeBoost: 0.07 },
-      { level: 3, damage: 3, rate: 1.2, range: 4.5, cost: 420, rangeBoost: 0.08 },
-      { level: 4, damage: 4, rate: 1.3, range: 4.7, cost: 600, rangeBoost: 0.10 },
-      { level: 5, damage: 5, rate: 1.4, range: 5.0, cost: 860, rangeBoost: 0.12 },
+      { level: 2, damage: 2, rate: 1.1, range: 4.2, cost: 65, rangeBoost: 0.07 },
+      { level: 3, damage: 3, rate: 1.2, range: 4.5, cost: 95, rangeBoost: 0.08 },
+      { level: 4, damage: 4, rate: 1.3, range: 4.7, cost: 145, rangeBoost: 0.10 },
+      { level: 5, damage: 5, rate: 1.4, range: 5.0, cost: 195, rangeBoost: 0.12 },
     ],
   },
   {
@@ -282,10 +282,10 @@ export const towers = [
     family: 'support',
     levels: [
       { level: 1, damage: 6, rate: 1.2, range: 4.5, cost: 220, armorDebuff: 0.06, debuffDuration: 2.0 },
-      { level: 2, damage: 7, rate: 1.3, range: 4.7, cost: 320, armorDebuff: 0.07, debuffDuration: 2.2 },
-      { level: 3, damage: 8, rate: 1.4, range: 5.0, cost: 460, armorDebuff: 0.08, debuffDuration: 2.4 },
-      { level: 4, damage: 10, rate: 1.5, range: 5.2, cost: 660, armorDebuff: 0.10, debuffDuration: 2.6 },
-      { level: 5, damage: 12, rate: 1.6, range: 5.5, cost: 940, armorDebuff: 0.12, debuffDuration: 3.0 },
+      { level: 2, damage: 7, rate: 1.3, range: 4.7, cost: 105, armorDebuff: 0.07, debuffDuration: 2.2 },
+      { level: 3, damage: 8, rate: 1.4, range: 5.0, cost: 150, armorDebuff: 0.08, debuffDuration: 2.4 },
+      { level: 4, damage: 10, rate: 1.5, range: 5.2, cost: 240, armorDebuff: 0.10, debuffDuration: 2.6 },
+      { level: 5, damage: 12, rate: 1.6, range: 5.5, cost: 410, armorDebuff: 0.12, debuffDuration: 3.0 },
     ],
   },
   {
@@ -294,10 +294,10 @@ export const towers = [
     family: 'support',
     levels: [
       { level: 1, damage: 0, rate: 0, range: 0, cost: 260, endWaveCoins: 15 },
-      { level: 2, damage: 0, rate: 0, range: 0, cost: 360, endWaveCoins: 20 },
-      { level: 3, damage: 0, rate: 0, range: 0, cost: 520, endWaveCoins: 25 },
-      { level: 4, damage: 0, rate: 0, range: 0, cost: 740, endWaveCoins: 30 },
-      { level: 5, damage: 0, rate: 0, range: 0, cost: 1050, endWaveCoins: 40 },
+      { level: 2, damage: 0, rate: 0, range: 0, cost: 100, endWaveCoins: 20 },
+      { level: 3, damage: 0, rate: 0, range: 0, cost: 100, endWaveCoins: 25 },
+      { level: 4, damage: 0, rate: 0, range: 0, cost: 100, endWaveCoins: 30 },
+      { level: 5, damage: 0, rate: 0, range: 0, cost: 205, endWaveCoins: 40 },
     ],
   },
   {
@@ -306,10 +306,10 @@ export const towers = [
     family: 'anti-air',
     levels: [
       { level: 1, damage: 6, rate: 2.6, range: 4.5, cost: 110, airBonus: 0.30 },
-      { level: 2, damage: 7, rate: 2.8, range: 4.7, cost: 170, airBonus: 0.32 },
-      { level: 3, damage: 8, rate: 3.0, range: 5.0, cost: 250, airBonus: 0.34 },
-      { level: 4, damage: 10, rate: 3.2, range: 5.3, cost: 360, airBonus: 0.36 },
-      { level: 5, damage: 12, rate: 3.4, range: 5.5, cost: 510, airBonus: 0.38 },
+      { level: 2, damage: 7, rate: 2.8, range: 4.7, cost: 40, airBonus: 0.32 },
+      { level: 3, damage: 8, rate: 3.0, range: 5.0, cost: 45, airBonus: 0.34 },
+      { level: 4, damage: 10, rate: 3.2, range: 5.3, cost: 80, airBonus: 0.36 },
+      { level: 5, damage: 12, rate: 3.4, range: 5.5, cost: 90, airBonus: 0.38 },
     ],
   },
   {
@@ -318,10 +318,10 @@ export const towers = [
     family: 'anti-air',
     levels: [
       { level: 1, damage: 18, rate: 1.3, range: 5.0, cost: 160, airBonus: 0.40, splash: 0.8 },
-      { level: 2, damage: 22, rate: 1.35, range: 5.2, cost: 240, airBonus: 0.42, splash: 0.9 },
-      { level: 3, damage: 26, rate: 1.4, range: 5.5, cost: 350, airBonus: 0.44, splash: 1.0 },
-      { level: 4, damage: 32, rate: 1.45, range: 5.8, cost: 500, airBonus: 0.46, splash: 1.1 },
-      { level: 5, damage: 40, rate: 1.5, range: 6.0, cost: 710, airBonus: 0.48, splash: 1.2 },
+      { level: 2, damage: 22, rate: 1.35, range: 5.2, cost: 65, airBonus: 0.42, splash: 0.9 },
+      { level: 3, damage: 26, rate: 1.4, range: 5.5, cost: 80, airBonus: 0.44, splash: 1.0 },
+      { level: 4, damage: 32, rate: 1.45, range: 5.8, cost: 120, airBonus: 0.46, splash: 1.1 },
+      { level: 5, damage: 40, rate: 1.5, range: 6.0, cost: 170, airBonus: 0.48, splash: 1.2 },
     ],
   },
   {
@@ -330,10 +330,10 @@ export const towers = [
     family: 'anti-air',
     levels: [
       { level: 1, damage: 45, rate: 0.6, range: 6.5, cost: 220, airBonus: 0.55 },
-      { level: 2, damage: 55, rate: 0.62, range: 6.8, cost: 320, airBonus: 0.58 },
-      { level: 3, damage: 68, rate: 0.64, range: 7.2, cost: 470, airBonus: 0.61 },
-      { level: 4, damage: 84, rate: 0.66, range: 7.6, cost: 670, airBonus: 0.64 },
-      { level: 5, damage: 105, rate: 0.68, range: 8.0, cost: 940, airBonus: 0.67 },
+      { level: 2, damage: 55, rate: 0.62, range: 6.8, cost: 80, airBonus: 0.58 },
+      { level: 3, damage: 68, rate: 0.64, range: 7.2, cost: 110, airBonus: 0.61 },
+      { level: 4, damage: 84, rate: 0.66, range: 7.6, cost: 145, airBonus: 0.64 },
+      { level: 5, damage: 105, rate: 0.68, range: 8.0, cost: 200, airBonus: 0.67 },
     ],
   },
   {
@@ -342,10 +342,10 @@ export const towers = [
     family: 'anti-air',
     levels: [
       { level: 1, damage: 10, rate: 2.2, range: 6.0, cost: 240, airBonus: 0.35 },
-      { level: 2, damage: 12, rate: 2.3, range: 6.2, cost: 340, airBonus: 0.38 },
-      { level: 3, damage: 14, rate: 2.4, range: 6.5, cost: 490, airBonus: 0.41 },
-      { level: 4, damage: 17, rate: 2.5, range: 6.8, cost: 700, airBonus: 0.44 },
-      { level: 5, damage: 21, rate: 2.6, range: 7.0, cost: 980, airBonus: 0.47 },
+      { level: 2, damage: 12, rate: 2.3, range: 6.2, cost: 80, airBonus: 0.38 },
+      { level: 3, damage: 14, rate: 2.4, range: 6.5, cost: 95, airBonus: 0.41 },
+      { level: 4, damage: 17, rate: 2.5, range: 6.8, cost: 145, airBonus: 0.44 },
+      { level: 5, damage: 21, rate: 2.6, range: 7.0, cost: 195, airBonus: 0.47 },
     ],
   },
   {
@@ -354,10 +354,10 @@ export const towers = [
     family: 'anti-air',
     levels: [
       { level: 1, damage: 8, rate: 2.0, range: 5.5, cost: 260, airBonus: 0.30 },
-      { level: 2, damage: 10, rate: 2.1, range: 5.7, cost: 380, airBonus: 0.32 },
-      { level: 3, damage: 12, rate: 2.2, range: 6.0, cost: 540, airBonus: 0.34 },
-      { level: 4, damage: 15, rate: 2.3, range: 6.3, cost: 780, airBonus: 0.36 },
-      { level: 5, damage: 18, rate: 2.4, range: 6.5, cost: 1100, airBonus: 0.38 },
+      { level: 2, damage: 10, rate: 2.1, range: 5.7, cost: 105, airBonus: 0.32 },
+      { level: 3, damage: 12, rate: 2.2, range: 6.0, cost: 125, airBonus: 0.34 },
+      { level: 4, damage: 15, rate: 2.3, range: 6.3, cost: 190, airBonus: 0.36 },
+      { level: 5, damage: 18, rate: 2.4, range: 6.5, cost: 205, airBonus: 0.38 },
     ],
   },
 ];

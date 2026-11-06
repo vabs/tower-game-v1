@@ -6,13 +6,13 @@ import { sandbox, place, enemyAt, run } from './helpers.js';
 test('upgrade costs the base price in build phase and +15% (rounded up) in a wave', () => {
   const w = sandbox();
   const t = place(w, 'ar_turret', 6, 3);
-  expect(upgradeCostOf(w, t)).toBe(130);
+  expect(upgradeCostOf(w, t)).toBe(40);
   w.phase = 'wave';
-  expect(upgradeCostOf(w, t)).toBe(150); // ceil(130 * 1.15)
+  expect(upgradeCostOf(w, t)).toBe(46); // ceil(40 * 1.15)
   const before = w.coins;
-  expect(upgradeTower(w, t.id)).toMatchObject({ ok: true, cost: 150, level: 2 });
-  expect(w.coins).toBe(before - 150);
-  expect(t.spent).toBe(80 + 150);
+  expect(upgradeTower(w, t.id)).toMatchObject({ ok: true, cost: 46, level: 2 });
+  expect(w.coins).toBe(before - 46);
+  expect(t.spent).toBe(80 + 46);
 });
 
 test('upgrade stops at level 5', () => {
@@ -28,7 +28,7 @@ test('upgrade stops at level 5', () => {
 test('upgrade rejects when unaffordable, unknown tower, or game over', () => {
   const w = sandbox();
   const t = place(w, 'ar_turret', 6, 3);
-  w.coins = 129;
+  w.coins = 39;
   expect(upgradeTower(w, t.id)).toEqual({ ok: false, reason: 'unaffordable' });
   expect(upgradeTower(w, 9999)).toEqual({ ok: false, reason: 'not_found' });
   w.phase = 'lost';
@@ -38,11 +38,11 @@ test('upgrade rejects when unaffordable, unknown tower, or game over', () => {
 test('sell refunds 70% of total spent in build phase and 50% during a wave', () => {
   const w = sandbox();
   const a = place(w, 'ar_turret', 6, 3);
-  upgradeTower(w, a.id); // spent 80 + 130 = 210
-  expect(sellValue(w, a)).toBe(147);
+  upgradeTower(w, a.id); // spent 80 + 40 = 120
+  expect(sellValue(w, a)).toBe(84);
   const before = w.coins;
-  expect(sellTower(w, a.id)).toEqual({ ok: true, refund: 147 });
-  expect(w.coins).toBe(before + 147);
+  expect(sellTower(w, a.id)).toEqual({ ok: true, refund: 84 });
+  expect(w.coins).toBe(before + 84);
   expect(w.towers).toHaveLength(0);
 
   const b = place(w, 'ar_turret', 6, 3);
