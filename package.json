@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:watch": "vitest",
-    "smoke": "node tools/smoke.mjs"
+    "smoke": "node tools/smoke.mjs",
+    "shots": "node tools/level-shots.mjs"
   },
   "devDependencies": {
     "playwright-core": "1.65.0",
