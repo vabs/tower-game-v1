@@ -43,6 +43,12 @@ try {
 
   check('Regular is the default difficulty', (await page.locator('#btn-diff-regular').getAttribute('aria-checked')) === 'true');
   await page.click('#btn-diff-veteran');
+  // ---- audio: the first user gesture creates a running AudioContext ----
+  await page.waitForFunction(() => window.__td?.audio?.debug().state === 'running', null, { timeout: 5000 }).catch(() => {});
+  const audio0 = await page.evaluate(() => window.__td?.audio?.debug());
+  check('AudioContext exists and is running after the first click', audio0?.state === 'running', JSON.stringify(audio0));
+  check('start screen plays the menu track', audio0?.track === 'menu', audio0?.track);
+  check('start screen has an Audio row with two sliders', (await page.locator('.screen-start .audio-row input[type="range"]').count()) === 2);
   await page.reload();
   await waitScreen('start');
   check('difficulty selection persists across reload', (await page.locator('#btn-diff-veteran').getAttribute('aria-checked')) === 'true' && (await page.evaluate(() => JSON.parse(localStorage.getItem('td-save-v1')).difficulty)) === 'veteran');
@@ -116,8 +122,12 @@ try {
   check('T cycles targeting', (await page.evaluate(() => window.__td.world.towers.find((t) => t.id === window.__td.app.selectedId)?.targeting)) === 'last');
   await page.keyboard.press('Tab');
   check('Tab selects the next tower', (await page.evaluate(() => window.__td.app.selectedId)) !== (await page.evaluate(() => window.__td.world.towers[0].id)));
+  const trackBuild = await page.evaluate(() => window.__td.audio.debug().track);
   await page.keyboard.press('Space');
   await page.waitForTimeout(300);
+  const trackWave = await page.evaluate(() => window.__td.audio.debug().track);
+  check('music track changes build -> battle when a wave starts', trackBuild === 'build' && trackWave === 'battle', `${trackBuild} -> ${trackWave}`);
+  check('wave start sting played', (await page.evaluate(() => window.__td.audio.debug().sting)) === 'waveStart');
   check('Space starts the wave', (await page.evaluate(() => window.__td.world.phase)) === 'wave');
   check('mission card collapses once wave 1 starts', !(await page.locator('#hud-mission-body').isVisible()) && (await page.locator('#hud-contract').isVisible()));
   await page.click('#hud-mission-toggle');
@@ -145,11 +155,35 @@ try {
   const dmg = await page.locator('[data-panel="towers"] tbody tr').first().locator('td').nth(1).textContent();
   check('tower damage recorded', Number(dmg) > 0, `damage=${dmg}`);
   check('pause screen lists controls', (await page.locator('[data-panel="controls"] kbd').count()) >= 8);
+  check('pause screen shows music + effects sliders', (await page.locator('[data-panel="audio"] input[type="range"]').count()) === 2);
+  await page.locator('#vol-music').fill('30');
+  await page.waitForTimeout(150);
+  const vol = await page.evaluate(() => ({ m: window.__td.audio.debug().musicVolume, s: JSON.parse(localStorage.getItem('td-save-v1')).settings.music }));
+  check('music slider changes the volume and is saved', Math.abs(vol.m - 0.3) < 1e-6 && Math.abs(vol.s - 0.3) < 1e-6, JSON.stringify(vol));
+  check('pause ducks the music', (await page.evaluate(() => window.__td.audio.debug().duck)) < 0.5);
+  // M mutes (master gain 0) and unmutes, also while a slider has focus
+  await page.keyboard.press('m');
+  await page.waitForTimeout(200);
+  const muted = await page.evaluate(() => window.__td.audio.debug());
+  check('M mutes: master gain is 0', muted.muted === true && muted.master === 0, JSON.stringify(muted));
+  check('top-bar mute button reflects the state', (await page.locator('#hud-mute').getAttribute('aria-pressed')) === 'true' && (await page.locator('#btn-mute-audio').textContent()) === 'Unmute');
+  check('mute is saved', (await page.evaluate(() => JSON.parse(localStorage.getItem('td-save-v1')).settings.muted)) === true);
+  await page.keyboard.press('m');
+  await page.waitForTimeout(200);
+  check('M again unmutes: master gain is 1', (await page.evaluate(() => window.__td.audio.debug().master)) === 1);
   await page.screenshot({ path: `${outDir}/04b-paused.png` });
   await page.keyboard.press('Escape');
   await page.waitForFunction(() => document.getElementById('screens').hidden);
   await page.waitForTimeout(400);
   check('resume continues the sim', (await page.evaluate(() => window.__td.world.time)) > t1);
+  check('resume lifts the music duck', (await page.evaluate(() => window.__td.audio.debug().duck)) === 1);
+  await page.click('#hud-mute');
+  await page.waitForTimeout(150);
+  check('top-bar mute button mutes', (await page.evaluate(() => window.__td.audio.debug())).master === 0);
+  await page.click('#hud-mute');
+  await page.waitForTimeout(150);
+  check('top-bar mute button unmutes', (await page.evaluate(() => window.__td.audio.debug())).master === 1);
+  check('sound effects were played during the wave', (await page.evaluate(() => window.__td.audio.debug().sfx.played)) > 0);
   // ---- game speed: button cycles 1x -> 2x -> 3x -> 1x, keys 1/2/3 set it; more sim time per real second ----
   const simRate = async () => {
     const a = await page.evaluate(() => window.__td.world.time);

@@ -38,10 +38,21 @@ In dev builds the running state is exposed as `window.__td` (`world`, `app`, `sm
 | T | Cycle targeting of the selected tower |
 | Tab (Shift+Tab) | Select next (previous) tower |
 | 1 / 2 / 3 | Game speed 1x / 2x / 3x (the top-bar button cycles too) |
+| M | Mute / unmute all audio |
 | Esc | Cancel placement, otherwise pause / resume |
 | N | Sandbox only: spawn a test wave |
 
 The same list is on the pause screen. The game pauses by itself when the window loses focus or the tab is hidden during a level. Early-calling the next wave during the countdown pays a small bonus.
+
+## Audio
+
+Music and sound effects are synthesized at runtime with the Web Audio API: no audio files, so the single-file build stays small and works from `file://` and GitHub Pages. Browsers block audio until a user gesture, so sound starts on your first click or key press.
+
+- **M** (or the speaker button in the top bar) mutes everything. Music and effects volume sliders are on the Pause screen, and the Start screen has an Audio row. Settings are saved (`settings` in the save file) and survive New Campaign.
+- Music follows the game: menu theme on the menus, a calm track while you build and during the countdown, a driving track during waves, a tense one for boss waves, with a 1 s crossfade. Victory and defeat have short stings, and each wave start has one (boss waves get an alarm). Pausing ducks the music; hiding the tab suspends audio. Music tempo never changes with game speed.
+- Effects: per-family tower fire sounds, explosions, kills and coin chimes, leak alarm, place / upgrade / sell, invalid-action buzz, supply drop, boss phases, UI clicks. Voice limiting (per-sound cap, retrigger interval, global cap) keeps big waves from turning into noise.
+- Music is data: tracks live in `src/audio/tracks.js` (schema documented at the top of that file) and can be edited without touching engine code. `npm test` validates every track.
+- In dev builds `window.__td.audio.debug()` reports context state, master gain, current track and effect counters.
 
 ## Difficulty
 

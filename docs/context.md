@@ -17,6 +17,7 @@ The simulation is pure and deterministic (fixed step 1/60 s, seeded RNG, no DOM,
 - `src/core/` grid, path, rng, fixed-step clock (with speed multiplier and a step cap per frame), save (localStorage, versioned), medals.
 - `src/render/` canvas renderer (map layer, markers, enemies, towers, projectiles, fx) and sprite loader; cosmetic effects run on a clock scaled by game speed.
 - `src/ui/` `hud` (top bar, tower list, selected panel, mission brief), `screens` (overlays), `input` (mouse, Esc, 1/2/3, N in sandbox), `analytics`.
+- `src/audio/` runtime-synthesized sound (app layer only; the sim never imports it): `engine` (lazy AudioContext on first gesture, music/sfx buses, compressor, mute/duck), `synth` (instruments), `music` (look-ahead scheduler, crossfade, stings), `tracks` (music as data, schema in its header), `trackSchema`, `notes` (parsers), `musicState` (game state -> track), `sfx` (event -> sound map and voices), `limiter` (voice limits), `index` (controller used by `main.js`). Sim `fire` events exist only for audio.
 - `src/game/state.js` screen state machine; `src/main.js` boot, game loop, speed, auto-pause.
 - `tools/` `smoke.mjs` (Playwright), `balance.js` + `balance-bot.js` (bot), `autotune.mjs`, `upgrade-costs.mjs`, sprite generators (Python).
 - `tests/` vitest suites for sim, data, save, targeting, clock, upgrade-cost efficiency.
@@ -45,4 +46,4 @@ Human-proxy bot profile (`tools/balance-bot.js` options `buildOnly`, `placement`
 - Preview of the next two waves before spending (counts, air routes, boss HP).
 - Wave identities (swarm, heavy convoy, air raid) instead of the rotating roster.
 - Group the tower menu by family and show upgrade gain per coin.
-- Sound, mobile/touch, endless mode.
+- Mobile/touch, endless mode.
