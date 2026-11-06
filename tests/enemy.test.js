@@ -1,4 +1,4 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { Enemy } from '../src/entities/enemy.js';
 import { applySlow } from '../src/systems/status.js';

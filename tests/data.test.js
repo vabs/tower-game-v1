@@ -1,4 +1,4 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { towers } from '../src/data/towers.js';
 import { enemies } from '../src/data/enemies.js';

@@ -1,3 +1,4 @@
+import './styles/main.css';
 import { VERSION } from './core/version.js';
 import { createRenderer } from './render/renderer.js';
 import { createGame } from './game/game.js';
