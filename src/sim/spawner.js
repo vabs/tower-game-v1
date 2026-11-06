@@ -21,6 +21,11 @@ export function beginWave(world) {
   world.countdown = null;
   world.spawner = { queue: buildSpawnQueue(world.waves[world.waveIndex]), next: 0, elapsed: 0 };
   world.events.push({ type: 'waveStart', wave: world.waveIndex });
+  const wave = world.waves[world.waveIndex];
+  if (wave.supply) {
+    world.coins += wave.coins;
+    world.events.push({ type: 'supplyDrop', wave: world.waveIndex, coins: wave.coins });
+  }
 }
 
 /** Spawn due enemies; finish the wave when everything is spawned and dead/leaked. */
@@ -43,9 +48,11 @@ export function updateSpawner(world, dt) {
 }
 
 function endWave(world) {
-  const stipend = stipendForLevel(world.level);
+  // Supply Drop waves pay their flat coins at start instead of stipend/hub income.
+  const supply = !!world.waves[world.waveIndex].supply;
+  const stipend = supply ? 0 : stipendForLevel(world.level);
   let hub = 0;
-  for (const t of world.towers) hub += t.def.levels[t.level - 1].endWaveCoins ?? 0; // Logistics Hub
+  if (!supply) for (const t of world.towers) hub += t.def.levels[t.level - 1].endWaveCoins ?? 0; // Logistics Hub
   world.coins += stipend + hub;
   world.events.push({ type: 'waveEnd', wave: world.waveIndex, stipend, hub });
   world.waveIndex++;

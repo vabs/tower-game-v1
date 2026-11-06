@@ -12,8 +12,7 @@ import { attachInput } from './ui/input.js';
 
 function levelFromUrl() {
   const n = Number(new URLSearchParams(location.search).get('level'));
-  // Only level 1 has waves/maps until M3; anything else falls back to 1.
-  return Number.isInteger(n) && n === 1 && levels[n - 1] ? n : 1;
+  return Number.isInteger(n) && levels[n - 1] ? n : 1;
 }
 
 const sandbox = new URLSearchParams(location.search).get('sandbox') === '1';
