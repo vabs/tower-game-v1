@@ -7,6 +7,7 @@ import { updateEnemies } from './enemies.js';
 import { updateSpawner } from './spawner.js';
 import { updateTowers } from './towers.js';
 import { updateProjectiles } from './projectiles.js';
+import { updateEffects } from './effects.js';
 
 export const STEP = 1 / 60;
 export const STARTING_HP = 25;
@@ -35,7 +36,7 @@ export function startingCoins(level) {
  */
 
 /** Pure and deterministic given `seed`. */
-export function createWorld(levelId, { seed = 1, unlocked } = {}) {
+export function createWorld(levelId, { seed = 1, unlocked, coins, hp } = {}) {
   const level = levels[levelId - 1];
   if (!level) throw new Error(`unknown level ${levelId}`);
   const cumulative = [];
@@ -49,12 +50,13 @@ export function createWorld(levelId, { seed = 1, unlocked } = {}) {
     countdown: null,
     countdownLength: WAVE_COUNTDOWN,
     spawner: null,
-    coins: startingCoins(levelId),
-    hp: STARTING_HP,
-    maxHp: STARTING_HP,
+    coins: coins ?? startingCoins(levelId),
+    hp: hp ?? STARTING_HP,
+    maxHp: hp ?? STARTING_HP,
     enemies: [],
     towers: [],
     projectiles: [],
+    fields: [],
     events: [],
     time: 0,
     rng: createRng(seed),
@@ -69,6 +71,7 @@ export function step(world, dt = STEP) {
   if (world.phase === 'won' || world.phase === 'lost') return;
   world.time += dt;
   updateSpawner(world, dt);
+  updateEffects(world, dt);
   updateEnemies(world, dt);
   updateTowers(world, dt);
   updateProjectiles(world, dt);

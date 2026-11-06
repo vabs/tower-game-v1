@@ -1,6 +1,7 @@
 import { TILE_SIZE } from '../core/grid.js';
 import { positionAt } from '../core/path.js';
 import { enemies as enemyDefs } from '../data/enemies.js';
+import { speedMultiplier } from './effects.js';
 
 /** speed 1.0 == 1.5 tiles per second (decision 2). */
 export const TILES_PER_SPEED = 1.5;
@@ -56,7 +57,7 @@ export function spawnEnemy(world, defId, pathIndex = 0) {
 export function updateEnemies(world, dt) {
   for (const e of world.enemies) {
     if (e.dead) continue;
-    e.distance += e.speed * TILES_PER_SPEED * TILE_SIZE * dt;
+    e.distance += e.speed * speedMultiplier(e) * TILES_PER_SPEED * TILE_SIZE * dt;
     if (e.distance >= e.length) {
       e.leaked = true;
       world.hp = Math.max(0, world.hp - e.leak);

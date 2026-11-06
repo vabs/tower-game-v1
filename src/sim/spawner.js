@@ -44,8 +44,10 @@ export function updateSpawner(world, dt) {
 
 function endWave(world) {
   const stipend = stipendForLevel(world.level);
-  world.coins += stipend;
-  world.events.push({ type: 'waveEnd', wave: world.waveIndex, stipend });
+  let hub = 0;
+  for (const t of world.towers) hub += t.def.levels[t.level - 1].endWaveCoins ?? 0; // Logistics Hub
+  world.coins += stipend + hub;
+  world.events.push({ type: 'waveEnd', wave: world.waveIndex, stipend, hub });
   world.waveIndex++;
   world.spawner = null;
   if (world.waveIndex >= world.waves.length) {

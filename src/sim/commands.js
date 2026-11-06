@@ -1,5 +1,7 @@
 import { beginWave } from './spawner.js';
-import { createTower, getTowerDef } from './towers.js';
+import { createTower, getTowerDef, TARGET_MODES } from './towers.js';
+import { recomputeAuras } from './auras.js';
+import { upgradeCost } from '../systems/economy.js';
 
 /** @typedef {{ok:true}|{ok:false,reason:string}} Result */
 
@@ -44,6 +46,65 @@ export function placeTower(world, typeId, tx, ty) {
   world.coins -= def.levels[0].cost;
   const tower = createTower(world, def, tx, ty);
   world.towers.push(tower);
+  recomputeAuras(world);
   world.events.push({ type: 'place', towerId: tower.id });
   return { ok: true, tower };
+}
+
+export const MAX_LEVEL = 5;
+export const SELL_RATE_BUILD = 0.7;
+export const SELL_RATE_WAVE = 0.5;
+
+const findTower = (world, id) => world.towers.find((t) => t.id === id);
+
+/** Price of the next level now (+15% during a wave), or null at max level. */
+export function upgradeCostOf(world, tower) {
+  if (tower.level >= MAX_LEVEL) return null;
+  return upgradeCost(tower.def.levels[tower.level].cost, world.phase === 'wave');
+}
+
+/** Coins a sale would return right now. */
+export function sellValue(world, tower) {
+  return Math.floor(tower.spent * (world.phase === 'wave' ? SELL_RATE_WAVE : SELL_RATE_BUILD));
+}
+
+/**
+ * Reasons: game_over, not_found, max_level, unaffordable.
+ * @returns {Result}
+ */
+export function upgradeTower(world, towerId) {
+  if (world.phase === 'won' || world.phase === 'lost') return { ok: false, reason: 'game_over' };
+  const tower = findTower(world, towerId);
+  if (!tower) return { ok: false, reason: 'not_found' };
+  const cost = upgradeCostOf(world, tower);
+  if (cost === null) return { ok: false, reason: 'max_level' };
+  if (world.coins < cost) return { ok: false, reason: 'unaffordable' };
+  world.coins -= cost;
+  tower.spent += cost;
+  tower.level++;
+  recomputeAuras(world);
+  world.events.push({ type: 'upgrade', towerId, level: tower.level, cost });
+  return { ok: true, cost, level: tower.level };
+}
+
+/** Reasons: game_over, not_found. @returns {Result} */
+export function sellTower(world, towerId) {
+  if (world.phase === 'won' || world.phase === 'lost') return { ok: false, reason: 'game_over' };
+  const tower = findTower(world, towerId);
+  if (!tower) return { ok: false, reason: 'not_found' };
+  const refund = sellValue(world, tower);
+  world.coins += refund;
+  world.towers = world.towers.filter((t) => t !== tower);
+  recomputeAuras(world);
+  world.events.push({ type: 'sell', towerId, refund });
+  return { ok: true, refund };
+}
+
+/** Reasons: not_found, bad_mode. @returns {Result} */
+export function setTargeting(world, towerId, mode) {
+  const tower = findTower(world, towerId);
+  if (!tower) return { ok: false, reason: 'not_found' };
+  if (!TARGET_MODES.includes(mode)) return { ok: false, reason: 'bad_mode' };
+  tower.targeting = mode;
+  return { ok: true };
 }
