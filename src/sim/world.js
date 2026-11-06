@@ -8,6 +8,7 @@ import { updateSpawner } from './spawner.js';
 import { updateTowers } from './towers.js';
 import { updateProjectiles } from './projectiles.js';
 import { updateEffects } from './effects.js';
+import { createStats } from './stats.js';
 
 export const STEP = 1 / 60;
 export const STARTING_HP = 25;
@@ -63,6 +64,7 @@ export function createWorld(levelId, { seed = 1, unlocked, coins, hp } = {}) {
     map: loadMap(maps[mapIdForLevel(levelId)]),
     unlocked: unlocked ?? cumulative,
     nextId: 1,
+    stats: createStats(),
   };
 }
 

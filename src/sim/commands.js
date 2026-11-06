@@ -1,6 +1,7 @@
 import { beginWave } from './spawner.js';
 import { createTower, getTowerDef, TARGET_MODES } from './towers.js';
 import { recomputeAuras } from './auras.js';
+import { registerTower, creditSpend } from './stats.js';
 import { upgradeCost } from '../systems/economy.js';
 
 /** @typedef {{ok:true}|{ok:false,reason:string}} Result */
@@ -46,6 +47,7 @@ export function placeTower(world, typeId, tx, ty) {
   world.coins -= def.levels[0].cost;
   const tower = createTower(world, def, tx, ty);
   world.towers.push(tower);
+  registerTower(world, tower);
   recomputeAuras(world);
   world.events.push({ type: 'place', towerId: tower.id });
   return { ok: true, tower };
@@ -81,6 +83,7 @@ export function upgradeTower(world, towerId) {
   if (world.coins < cost) return { ok: false, reason: 'unaffordable' };
   world.coins -= cost;
   tower.spent += cost;
+  creditSpend(world, tower.id, cost);
   tower.level++;
   recomputeAuras(world);
   world.events.push({ type: 'upgrade', towerId, level: tower.level, cost });

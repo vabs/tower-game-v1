@@ -1,3 +1,5 @@
+import { creditDamage, enemyStat } from './stats.js';
+
 /** Only the Anti-Air family hits air (decision 8). */
 export function canHitAir(def) {
   return def.family === 'anti-air';
@@ -25,8 +27,12 @@ export function shotDamage(base, enemy, mods = {}) {
 
 export function applyDamage(world, enemy, damage, towerId) {
   if (enemy.dead || enemy.leaked) return;
+  const dealt = Math.min(damage, Math.max(0, enemy.hp));
   enemy.hp -= damage;
-  if (enemy.hp <= 0) {
+  const killed = enemy.hp <= 0;
+  creditDamage(world, towerId, dealt, killed);
+  if (killed) {
+    enemyStat(world, enemy.defId).killed++;
     enemy.dead = true;
     world.coins += enemy.coins;
     const tower = world.towers.find((t) => t.id === towerId);

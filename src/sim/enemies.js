@@ -4,6 +4,7 @@ import { enemies as enemyDefs } from '../data/enemies.js';
 import { speedMultiplier } from './effects.js';
 import { bosses as bossDefs } from '../data/bosses.js';
 import { levelScaling } from '../data/waves.js';
+import { enemyStat } from './stats.js';
 
 /** speed 1.0 == 1.5 tiles per second (decision 2). */
 export const TILES_PER_SPEED = 1.5;
@@ -68,6 +69,7 @@ export function spawnEnemy(world, defId, pathIndex) {
     leaked: false,
   };
   world.enemies.push(enemy);
+  enemyStat(world, defId).seen++;
   return enemy;
 }
 
@@ -78,7 +80,10 @@ export function updateEnemies(world, dt) {
     e.distance += e.speed * speedMultiplier(e) * TILES_PER_SPEED * TILE_SIZE * dt;
     if (e.distance >= e.length) {
       e.leaked = true;
-      world.hp = Math.max(0, world.hp - e.leak);
+      const lost = Math.min(world.hp, e.leak);
+      world.hp -= lost;
+      world.stats.hpLost += lost;
+      enemyStat(world, e.defId).leaked++;
       world.events.push({ type: 'leak', enemyId: e.id, damage: e.leak });
       continue;
     }
