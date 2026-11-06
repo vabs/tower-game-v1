@@ -552,6 +552,9 @@ def draw_ui_icon(icon_id):
     return rects
 
 
+UI_OWNED_ELSEWHERE = {"medal_bronze", "medal_silver", "medal_gold", "lock", "pause", "play"}
+
+
 def main():
     png_base = os.path.join("src", "assets", "sprites")
     svg_base = "art"
@@ -604,6 +607,9 @@ def main():
         "pause",
         "play",
     ]:
+        # tools/generate_ui_assets.py owns these files (medals, lock, pause, play): never overwrite them here.
+        if icon_id in UI_OWNED_ELSEWHERE:
+            continue
         rects = draw_ui_icon(icon_id)
         path = os.path.join(ui_dir, f"{icon_id}.svg")
         save_svg(path, rects)
@@ -615,7 +621,7 @@ def main():
     print(f"- Towers: {len(TOWERS)} types, 5 levels each")
     print(f"- Enemies: {len(ENEMIES)} types")
     print("- Tiles: 6")
-    print("- UI icons: 11")
+    print(f"- UI icons: {11 - len(UI_OWNED_ELSEWHERE)} (the rest belong to generate_ui_assets.py)")
 
 
 if __name__ == "__main__":
