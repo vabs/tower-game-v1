@@ -13,11 +13,23 @@ export const MAX_LEVEL = levels.length;
  * @property {string} [difficulty]          'recruit'|'regular'|'veteran' (missing in old saves: regular)
  * @property {Record<string,true>} [contracts]       levels whose optional contract was completed (missing in old saves: none)
  * @property {Record<string,string>} [medalDifficulty]  difficulty each best medal was earned on
+ * @property {{music:number,sfx:number,muted:boolean}} [settings]  audio settings (missing in old saves: DEFAULT_SETTINGS)
  * @property {{playTime:number, towers:Record<string,{damage:number,kills:number,spent:number}>}} stats
  */
 
+/** Audio defaults: volumes 0..1 and the mute flag. */
+export const DEFAULT_SETTINGS = Object.freeze({ music: 0.6, sfx: 0.8, muted: false });
+
+const unit = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : d);
+
+/** Validate untrusted settings: missing or bad fields fall back to the defaults, volumes clamp to 0..1. */
+export function normalizeSettings(raw) {
+  const r = raw && typeof raw === 'object' ? raw : {};
+  return { music: unit(r.music, DEFAULT_SETTINGS.music), sfx: unit(r.sfx, DEFAULT_SETTINGS.sfx), muted: r.muted === true };
+}
+
 export function freshSave() {
-  return { version: 1, unlockedLevel: 1, difficulty: DEFAULT_DIFFICULTY, medalDifficulty: {}, medals: {}, contracts: {}, stats: { playTime: 0, towers: {} } };
+  return { version: 1, unlockedLevel: 1, difficulty: DEFAULT_DIFFICULTY, settings: { ...DEFAULT_SETTINGS }, medalDifficulty: {}, medals: {}, contracts: {}, stats: { playTime: 0, towers: {} } };
 }
 
 /** localStorage, or null when unavailable (private mode, blocked, no DOM). */
@@ -45,6 +57,7 @@ export function normalizeSave(raw) {
     const id = Number(k);
     if (Number.isInteger(id) && id >= 1 && id <= MAX_LEVEL && v === true) out.contracts[id] = true;
   }
+  out.settings = normalizeSettings(raw.settings);
   out.difficulty = isDifficulty(raw.difficulty) ? raw.difficulty : DEFAULT_DIFFICULTY;
   const md = raw.medalDifficulty && typeof raw.medalDifficulty === 'object' ? raw.medalDifficulty : {};
   for (const [k, d] of Object.entries(md)) if (out.medals[k] && isDifficulty(d)) out.medalDifficulty[k] = d;

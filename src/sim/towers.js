@@ -96,6 +96,9 @@ function fire(world, tower, target, s) {
   if (lv.crit && world.rng.chance(lv.crit)) damage *= CRIT_MULT;
   const mods = { aa, airBonus: lv.airBonus ?? 0, canHitAir: aa };
   const shot = { damage, mods, effects: effectsOf(lv), towerId: tower.id };
+  // Cosmetic stream for the audio layer; never read by the sim itself.
+  const kind = lv.pierce ? 'rail' : lv.chains ? 'chain' : lv.fieldRadius ? 'gas' : lv.splash ? 'splash' : 'shot';
+  world.events.push({ type: 'fire', towerId: tower.id, typeId: tower.typeId, family: tower.def.family, kind, x: tower.x, y: tower.y });
 
   if (lv.pierce) return fireLine(world, tower, target, shot, lv, s.rangePx);
   if (lv.chains) return chainLightning(world, tower, target, damage, lv, mods, aa);

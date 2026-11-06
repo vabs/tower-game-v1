@@ -84,3 +84,29 @@ test('campaign summary aggregates medals and best towers', () => {
   expect(sum.bestTowers[0]).toMatchObject({ typeId: 'ar_turret', damage: 1100 });
   expect(sum.bestTowers).toHaveLength(2);
 });
+
+import { DEFAULT_SETTINGS, normalizeSettings } from '../src/core/save.js';
+
+test('settings default to music 0.6, sfx 0.8, unmuted', () => {
+  expect(freshSave().settings).toEqual({ music: 0.6, sfx: 0.8, muted: false });
+  expect(DEFAULT_SETTINGS).toEqual({ music: 0.6, sfx: 0.8, muted: false });
+});
+
+test('old saves without settings migrate to the defaults', () => {
+  const storage = fakeStorage({ [SAVE_KEY]: JSON.stringify({ version: 1, unlockedLevel: 3, medals: {}, stats: { playTime: 0, towers: {} } }) });
+  const s = loadSave(storage);
+  expect(s.settings).toEqual({ music: 0.6, sfx: 0.8, muted: false });
+  expect(s.unlockedLevel).toBe(3);
+});
+
+test('settings round-trip and are sanitised', () => {
+  const storage = fakeStorage();
+  const save = freshSave();
+  save.settings = { music: 0.25, sfx: 1, muted: true };
+  writeSave(save, storage);
+  expect(loadSave(storage).settings).toEqual({ music: 0.25, sfx: 1, muted: true });
+  expect(normalizeSettings({ music: 7, sfx: -2, muted: 'yes' })).toEqual({ music: 1, sfx: 0, muted: false });
+  expect(normalizeSettings({ music: 'loud', sfx: NaN })).toEqual({ music: 0.6, sfx: 0.8, muted: false });
+  expect(normalizeSettings({ music: 0.3 })).toEqual({ music: 0.3, sfx: 0.8, muted: false });
+  expect(normalizeSettings(null)).toEqual({ music: 0.6, sfx: 0.8, muted: false });
+});
