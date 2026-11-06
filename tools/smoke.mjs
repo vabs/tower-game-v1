@@ -61,6 +61,13 @@ try {
   await page.screenshot({ path: `${outDir}/01-loaded.png` });
 
   check('tower buttons rendered', (await buttons.count()) >= 1, `count=${await buttons.count()}`);
+  await buttons.first().hover();
+  await page.waitForTimeout(100);
+  const tipText = (await page.locator('#tower-tip').textContent()) || '';
+  check('hovering a tower button shows the tooltip', (await page.locator('#tower-tip').isVisible()) && /Damage/.test(tipText) && /DPS/.test(tipText) && /air/i.test(tipText), tipText);
+  await page.screenshot({ path: `${outDir}/01b-tooltip.png` });
+  await page.mouse.move(5, 5);
+  check('tooltip hides when the pointer leaves', !(await page.locator('#tower-tip').isVisible()));
   const coins0 = await page.evaluate(() => window.__td.world.coins);
   await buttons.first().click();
   const box = await page.locator('#game').boundingBox();
@@ -84,6 +91,9 @@ try {
   await page.waitForTimeout(200);
   const sel = await page.locator('#hud-selected').textContent();
   check('selecting tower shows name', sel && sel !== 'None', `selected=${sel}`);
+  const upDelta = (await page.locator('#hud-upgrade .up-delta').textContent()) || '';
+  check('upgrade button shows next-level deltas and DPS per coin', /dmg/.test(upDelta) && /DPS/.test(upDelta) && /\/coin/.test(upDelta), upDelta);
+  check('sell button shows the refund', /Sell \(\+\d+/.test((await page.locator('#hud-sell').textContent()) || ''));
   await page.screenshot({ path: `${outDir}/03-selected.png` });
 
   await page.click('#hud-start');

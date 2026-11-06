@@ -6,6 +6,7 @@ import { bosses, BOSS_SEQUENCE } from '../data/bosses.js';
 import { INTRODUCED_AT } from '../data/waves.js';
 import { medalFor } from '../core/medals.js';
 import { summarizeWave } from './wavePreview.js';
+import { levelSpecial, towerCardInfo, upgradeDelta } from './towerInfo.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -34,23 +35,7 @@ const FAMILIES = [
 
 /** One line of per-tower special stats for the selected panel. */
 export function describeSpecial(tower) {
-  const lv = towerLevel(tower);
-  const out = [];
-  if (tower.def.special?.spoolUp) out.push(`Spool-up ${tower.def.special.spoolUp}s`);
-  if (lv.crit) out.push(`Crit ${Math.round(lv.crit * 100)}% (2x)`);
-  if (lv.pierce) out.push(`Pierce ${lv.pierce}`);
-  if (lv.splash) out.push(`Splash ${lv.splash} tiles`);
-  if (lv.airBonus) out.push(`+${Math.round(lv.airBonus * 100)}% vs air, 60% vs ground`);
-  if (lv.slow) out.push(`Slow ${Math.round(lv.slow * 100)}% for ${lv.slowDuration}s`);
-  if (lv.burnDps) out.push(`Burn ${lv.burnDps}/s for ${lv.burnDuration}s`);
-  if (lv.stun) out.push(`Stun ${lv.stun}s`);
-  if (lv.chains) out.push(`Chain ${lv.chains} hops, slow ${Math.round(lv.chainSlow * 100)}%`);
-  if (lv.fieldRadius) out.push(`Gas field ${lv.fieldDuration}s, slow ${Math.round(lv.fieldSlow * 100)}%`);
-  if (lv.damageBoost) out.push(`Marked +${Math.round(lv.damageBoost * 100)}% dmg taken`);
-  if (lv.armorDebuff) out.push(`Armor -${Math.round(lv.armorDebuff * 100)}%`);
-  if (lv.fireRateBoost) out.push(`Aura +${Math.round(lv.fireRateBoost * 100)}% fire rate (${lv.auraRange} tiles)`);
-  if (lv.rangeBoost) out.push(`Aura +${Math.round(lv.rangeBoost * 100)}% range (${lv.range} tiles)`);
-  if (lv.endWaveCoins) out.push(`+${lv.endWaveCoins} coins per wave`);
+  const out = levelSpecial(tower.def, towerLevel(tower));
   const aura = tower.aura;
   if (aura && (aura.fireRate || aura.range)) {
     const parts = [];
@@ -127,11 +112,46 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
         cost.className = 'cost';
         cost.textContent = String(def.levels[0].cost);
         b.append(img, name, cost);
-        b.addEventListener('click', () => onArm(id));
+        b.addEventListener('click', () => {
+          if (b.getAttribute('aria-disabled') === 'true') return flash(REASON_TEXT.unaffordable);
+          onArm(id);
+        });
+        b.addEventListener('mouseenter', () => showTip(def, b));
+        b.addEventListener('mouseleave', hideTip);
+        b.addEventListener('focus', () => showTip(def, b));
+        b.addEventListener('blur', hideTip);
         el.list.appendChild(b);
         buttons.push({ id, cost: def.levels[0].cost, el: b });
       }
     }
+  }
+
+  // ---- hover tooltip for tower buttons ----
+  const tip = $('tower-tip');
+  function hideTip() { tip.hidden = true; }
+  function showTip(def, anchor) {
+    const info = towerCardInfo(def);
+    tip.textContent = '';
+    const line = (cls, text) => {
+      const d = document.createElement('div');
+      d.className = cls;
+      d.textContent = text;
+      tip.append(d);
+    };
+    line('tip-name', `${info.name}  (${info.cost} coins)`);
+    line('tip-role', `${FAMILIES.find((f) => f[0] === info.family)?.[1] ?? info.family}: ${info.role}`);
+    if (info.rate > 0) {
+      line('tip-stats', `Damage ${info.damage}   Rate ${info.rate.toFixed(1)}/s   Range ${info.range.toFixed(1)}`);
+      line('tip-dps', `DPS ${info.dps.toFixed(1)}`);
+    } else line('tip-stats', 'No attack');
+    for (const sp of info.special) line('tip-special', sp);
+    line(info.air ? 'tip-air yes' : 'tip-air no', info.air ? 'Can hit air' : 'Ground only (cannot hit air)');
+    tip.hidden = false;
+    const r = anchor.getBoundingClientRect();
+    const tr = tip.getBoundingClientRect();
+    const top = Math.max(8, Math.min(window.innerHeight - tr.height - 8, r.top + r.height / 2 - tr.height / 2));
+    tip.style.left = `${Math.round(r.right + 10)}px`;
+    tip.style.top = `${Math.round(top)}px`;
   }
 
   function flash(text, ms = 2200) {
@@ -164,6 +184,20 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     if (node.textContent !== text) node.textContent = text;
   }
 
+  function setUpgrade(main, delta) {
+    if (!el.upMain) {
+      el.upMain = document.createElement('span');
+      el.upMain.className = 'up-main';
+      el.upDelta = document.createElement('span');
+      el.upDelta.className = 'up-delta';
+      el.upgrade.textContent = '';
+      el.upgrade.append(el.upMain, el.upDelta);
+    }
+    setText(el.upMain, main);
+    setText(el.upDelta, delta);
+    el.upDelta.hidden = !delta;
+  }
+
   function updateSelected(world, tower) {
     const over = world.phase === 'won' || world.phase === 'lost';
     if (!tower) {
@@ -173,7 +207,7 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
       el.targeting.disabled = true;
       el.upgrade.disabled = true;
       el.sell.disabled = true;
-      setText(el.upgrade, 'Upgrade');
+      setUpgrade('Upgrade', '');
       setText(el.sell, 'Sell');
       return;
     }
@@ -203,10 +237,11 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
 
     const cost = upgradeCostOf(world, tower);
     if (cost === null) {
-      setText(el.upgrade, 'Max level');
+      setUpgrade('Max level', '');
       el.upgrade.disabled = true;
     } else {
-      setText(el.upgrade, `Upgrade to L${tower.level + 1} (${cost}${world.phase === 'wave' ? ', +15%' : ''})`);
+      const d = upgradeDelta(tower.def, tower.level, cost, tower.aura?.fireRate ?? 0);
+      setUpgrade(`Upgrade to L${tower.level + 1} (${cost}${world.phase === 'wave' ? ', +15%' : ''})`, d?.text ?? '');
       el.upgrade.disabled = over || world.coins < cost;
     }
     setText(el.sell, `Sell (+${sellValue(world, tower)}${world.phase === 'wave' ? ', 50%' : ', 70%'})`);
@@ -282,7 +317,9 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     setSrc(el.medal, `ui/medal_${medalFor(world.stats.hpLost)}`);
 
     for (const b of buttons) {
-      b.el.disabled = world.coins < b.cost;
+      const poor = world.coins < b.cost;
+      b.el.setAttribute('aria-disabled', poor ? 'true' : 'false');
+      b.el.classList.toggle('poor', poor);
       b.el.classList.toggle('armed', app.armed === b.id);
     }
 

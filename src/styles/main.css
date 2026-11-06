@@ -142,7 +142,7 @@ body {
 }
 .hud-tower-list button img { width: 24px; height: 24px; image-rendering: pixelated; }
 .hud-tower-list button .cost { color: #e0c040; }
-.hud-tower-list button:disabled { opacity: 0.45; cursor: not-allowed; }
+.hud-tower-list button:disabled, .hud-tower-list button.poor { opacity: 0.5; cursor: not-allowed; }
 .hud-tower-list button.armed { border-color: #8be08b; background: #34503a; }
 #hud-upgrade:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -369,3 +369,27 @@ body {
 .preview-then > div { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
 .pv-mini { display: inline-flex; align-items: center; gap: 1px; }
 .pv-mini img, .preview-then img { width: 16px; height: 16px; image-rendering: pixelated; }
+
+/* ---- tower tooltip, upgrade button detail ---- */
+.tower-tip {
+  position: fixed;
+  z-index: 40;
+  width: 250px;
+  padding: 8px 10px;
+  background: #0f1312;
+  border: 1px solid #c2b280;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+  font-size: 11px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+.tower-tip[hidden] { display: none; }
+.tip-name { color: #e0c040; font-size: 12px; }
+.tip-role { color: #9aa59f; margin-bottom: 4px; }
+.tip-dps { color: #8be08b; }
+.tip-special { color: #b9c9bd; }
+.tip-air.yes { color: #9fe0ff; margin-top: 3px; }
+.tip-air.no { color: #9aa59f; margin-top: 3px; }
+#hud-upgrade { display: grid; gap: 2px; text-align: left; }
+.up-delta { font-size: 10px; color: #8be08b; white-space: normal; line-height: 1.25; }
+.up-delta[hidden] { display: none; }
