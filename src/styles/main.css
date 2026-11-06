@@ -203,6 +203,13 @@ body {
 .hud-brief, .hud-unlock { display: grid; gap: 3px; border: 1px solid #303634; background: rgba(12, 15, 14, 0.6); padding: 6px 8px; }
 .hud-brief.fresh { border-color: #c2b280; }
 .brief-goal { color: #e0c040; }
+.side-card[hidden], #hud-mission-body[hidden] { display: none; }
+.mission-toggle { all: unset; cursor: pointer; display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; color: #e6e2d3; text-transform: uppercase; letter-spacing: 0.06em; font-size: 12px; }
+.mission-toggle:focus-visible { outline: 1px solid #c2b280; }
+.mission-toggle .caret { color: #c2b280; font-family: monospace; }
+.brief-contract { margin: 0 0 4px; color: #9fd6a8; border: 1px dashed #4c6a52; padding: 4px 8px; }
+.brief-contract:empty { display: none; }
+#hud-mission.collapsed h3 { margin-bottom: 4px; }
 .brief-new { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; }
 .hud-brief img, .hud-unlock img { width: 20px; height: 20px; image-rendering: pixelated; vertical-align: middle; }
 .unlock-next { display: flex; align-items: center; gap: 6px; color: #e6e2d3; }
@@ -454,3 +461,21 @@ body {
 .diff-picker.compact .diff-btn { padding: 4px 9px; font-size: 11px; }
 .diff-blurb { font-size: 11px; color: #9aa59f; }
 .lvl-diff { position: absolute; top: 2px; right: 3px; font-size: 9px; font-weight: bold; color: #e0c040; }
+
+/* ---- contracts ---- */
+.lvl-contract { position: absolute; bottom: 2px; left: 3px; font-size: 10px; font-weight: bold; color: #7fe08a; line-height: 1; }
+.contract-count { color: #7fe08a; font-weight: bold; }
+.contracts-total { margin: 0 0 8px; color: #7fe08a; font-size: 12px; }
+.contract-result { margin: 4px 0 8px; padding: 6px 10px; border: 1px solid #4c6a52; background: rgba(20, 40, 26, 0.6); }
+.contract-result.done b { color: #7fe08a; }
+.contract-result.failed { border-color: #6a4c4c; background: rgba(40, 22, 22, 0.6); }
+.contract-result.failed b { color: #e08a7f; }
+.sel-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; }
+.sel-name { grid-column: 1 / -1; }
+.hud-panel { gap: 4px; }
+.hud-brief, .hud-unlock { padding: 4px 8px; }
+.hud-unlock { margin-top: 4px; }
+.brief-contract { padding: 3px 8px; }
+.side-card { margin-top: 8px; }
+.sel-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.sel-actions button { min-width: 0; padding: 5px 4px; }

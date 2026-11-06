@@ -8,6 +8,7 @@ import { medalFor } from '../core/medals.js';
 import { summarizeWave } from './wavePreview.js';
 import { levelSpecial, towerCardInfo, upgradeDelta, describeBuffs } from './towerInfo.js';
 import { auraSourcesFor } from '../sim/auras.js';
+import { contractFor } from '../sim/contracts.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -52,9 +53,18 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     selDamage: $('hud-damage'), selRate: $('hud-rate'), special: $('hud-special'), buffs: $('hud-buffs'),
     targeting: $('hud-targeting'), upgrade: $('hud-upgrade'), sell: $('hud-sell'),
     pause: $('hud-pause'), speed: $('hud-speed'), speedIcon: $('hud-speed-icon'), pauseIcon: $('hud-pause-icon'), medal: $('hud-medal'), brief: $('hud-brief'), unlock: $('hud-unlock'),
+    mission: $('hud-mission'), missionToggle: $('hud-mission-toggle'), missionBody: $('hud-mission-body'), contract: $('hud-contract'),
     edge: $('fx-edge'), banner: $('fx-banner'), coinsChip: $('hud-coins-chip'), hpChip: $('hud-hp-chip'),
     preview: $('hud-preview'), previewHead: $('hud-preview-head'), previewNow: $('hud-preview-now'), previewThen: $('hud-preview-then'),
   };
+  /** The mission card (map, waves, unlock tracker) is open at level start and folds away once wave 1 begins. */
+  function setMissionOpen(open) {
+    el.missionBody.hidden = !open;
+    el.mission.classList.toggle('collapsed', !open);
+    el.missionToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    el.missionToggle.querySelector('.caret').textContent = open ? 'v' : '>';
+  }
+  el.missionToggle.addEventListener('click', () => setMissionOpen(el.missionBody.hidden));
   const setSrc = (img, key) => { const sp = sprites[key]; if (sp && img.getAttribute('src') !== sp.src) img.src = sp.src; };
   setSrc(el.pauseIcon, 'ui/pause');
   let buttons = [];
@@ -341,6 +351,7 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
         if (ev.phase === 'escorts') banner('Escorts inbound!', 'The boss calls for backup', 'boss', 2000 / sp);
         else banner('Boss enraged!', '+20% speed', 'boss', 2000 / sp);
       } else if (ev.type === 'waveStart') {
+        if (ev.wave === 0) setMissionOpen(false);
         const wave = world.waves[ev.wave];
         const n = ev.wave + 1;
         if (wave?.supply) banner(`Wave ${n}`, `Supply drop +${wave.coins}`, 'supply', 2200 / sp);
@@ -409,12 +420,14 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     el.msg.textContent = '';
     el.brief.textContent = '';
     el.unlock.textContent = '';
-    el.brief.parentElement.hidden = sandbox;
+    el.mission.hidden = sandbox;
+    el.contract.textContent = '';
+    setMissionOpen(true);
     if (sandbox) return;
     const lv = levels[world.level - 1];
     const mapName = lv.mapType[0].toUpperCase() + lv.mapType.slice(1);
     const waves = `${world.waves.length} waves${lv.supplyDropAfterWave != null ? ' (1 supply drop)' : ''}`;
-    el.brief.append(row(`Map: ${mapName}`), row(waves), row(`Difficulty: ${world.difficulty?.name ?? 'Regular'}`));
+    el.brief.append(row(`${mapName}, ${waves}, ${world.difficulty?.name ?? 'Regular'}`));
     const fresh = [...enemies.filter((e) => INTRODUCED_AT[e.id] === world.level), ...(BOSS_SEQUENCE[lv.boss] ?? []).map((id) => bosses.find((b) => b.id === id)).filter(Boolean)];
     if (fresh.length) {
       const line = row('New: ');
@@ -422,10 +435,15 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
       for (const e of fresh) {
         const sp = spriteImg(e.sprite ?? `enemies/${e.id}`);
         sp.title = e.name;
-        line.append(sp, `${e.name} `);
+        line.append(sp);
       }
+      line.title = fresh.map((e) => e.name).join(', ');
+      if (fresh.length <= 1) line.append(fresh.map((e) => e.name).join(', '));
       el.brief.append(line);
     }
+    const contract = contractFor(world.level);
+    el.contract.append(`Contract: ${contract.short}`);
+    el.contract.title = `Optional contract: ${contract.label}. Finish the level within this rule for a badge.`;
     const goal = row('No leaks for Gold');
     goal.className = 'brief-goal';
     el.brief.append(goal);
@@ -440,7 +458,9 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
       const def = getTowerDef(next.ids[0]);
       const line = row(spriteImg(`towers/${next.ids[0]}_l1`), `${def.name}${next.ids.length > 1 ? ` +${next.ids.length - 1}` : ''}`);
       line.className = 'unlock-next';
-      el.unlock.append(line, row(`unlocks at Level ${next.level}`));
+      line.title = `Unlocks at Level ${next.level}`;
+      line.append(` (L${next.level})`);
+      el.unlock.append(line);
     }
   }
 

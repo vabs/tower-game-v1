@@ -16,6 +16,7 @@ import { createStateMachine } from './game/state.js';
 import { loadSave, writeSave, clearSave, recordClear, isLevelUnlocked, MAX_LEVEL } from './core/save.js';
 import { medalFor, isBetterMedal } from './core/medals.js';
 import { getUnlocksForLevel } from './data/levels.js';
+import { contractFor, contractResult } from './sim/contracts.js';
 
 function levelFromUrl() {
   const raw = new URLSearchParams(location.search).get('level');
@@ -175,14 +176,15 @@ async function boot() {
     const hpLost = w.stats.hpLost;
     const medal = medalFor(hpLost);
     const improved = isBetterMedal(medal, save.medals[w.level]);
-    recordClear(save, w.level, medal, { difficulty: w.difficulty?.id, time: w.time, towers: snapshotStats(w).towers });
+    const contract = { ...contractFor(w.level), done: contractResult(w) };
+    recordClear(save, w.level, medal, { contract: contract.done, difficulty: w.difficulty?.id, time: w.time, towers: snapshotStats(w).towers });
     writeSave(save);
     if (w.level >= MAX_LEVEL) {
       sm.transition('game-end');
-      screens.showGameEnd({ world: w, save, medal });
+      screens.showGameEnd({ world: w, save, medal, contract });
     } else {
       sm.transition('level-complete');
-      screens.showLevelComplete({ world: w, medal, hpLost, improved, nextUnlocks: getUnlocksForLevel(w.level + 1) });
+      screens.showLevelComplete({ world: w, medal, hpLost, improved, contract, nextUnlocks: getUnlocksForLevel(w.level + 1) });
     }
   }
   function onLost(w) {

@@ -41,12 +41,14 @@
             </div>
             <h3>Selected</h3>
             <div class="hud-panel">
-              <div>Name: <span id="hud-selected">None</span></div>
-              <div>Level: <span id="hud-sel-level">-</span></div>
-              <div>Damage: <span id="hud-damage">-</span></div>
-              <div>Rate: <span id="hud-rate">-</span></div>
-              <div>Range: <span id="hud-range">-</span></div>
-              <div>DPS: <span id="hud-dps">-</span></div>
+              <div class="sel-stats">
+                <div class="sel-name">Name: <span id="hud-selected">None</span></div>
+                <div>Level: <span id="hud-sel-level">-</span></div>
+                <div>Damage: <span id="hud-damage">-</span></div>
+                <div>Rate: <span id="hud-rate">-</span></div>
+                <div>Range: <span id="hud-range">-</span></div>
+                <div>DPS: <span id="hud-dps">-</span></div>
+              </div>
               <div id="hud-special" class="hud-special"></div>
               <div id="hud-buffs" class="hud-buffs" data-testid="buffs"></div>
               <label class="hud-target">Target
@@ -58,14 +60,18 @@
                   <option value="air" hidden>Air first</option>
                 </select>
               </label>
-              <button id="hud-upgrade" type="button" disabled>Upgrade</button>
-              <button id="hud-sell" type="button" disabled>Sell</button>
+              <div class="sel-actions">
+                <button id="hud-upgrade" type="button" disabled>Upgrade</button>
+                <button id="hud-sell" type="button" disabled>Sell</button>
+              </div>
             </div>
             <div class="side-card" id="hud-mission">
-              <h3>Mission</h3>
-              <div class="hud-brief" id="hud-brief"></div>
-              <h3>Next unlock</h3>
-              <div class="hud-unlock" id="hud-unlock"></div>
+              <h3><button class="mission-toggle" id="hud-mission-toggle" type="button" aria-expanded="true" aria-controls="hud-mission-body">Mission <span class="caret" aria-hidden="true">v</span></button></h3>
+              <div class="brief-contract" id="hud-contract" data-testid="contract"></div>
+              <div id="hud-mission-body">
+                <div class="hud-brief" id="hud-brief"></div>
+                <div class="hud-unlock" id="hud-unlock" title="Next tower unlock"></div>
+              </div>
             </div>
           </div>
         </aside>

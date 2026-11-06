@@ -65,7 +65,9 @@ try {
   check('level 1 started from select', (await page.evaluate(() => window.__td.world.level)) === 1);
   check('world uses the saved difficulty', (await page.evaluate(() => window.__td.world.difficulty.id)) === 'recruit');
   check('mission brief shown', ((await page.locator('#hud-brief').textContent()) || '').includes('No leaks for Gold'));
-  check('tech unlock tracker shown', ((await page.locator('#hud-unlock').textContent()) || '').includes('Level 2'));
+  check('contract shown in the mission card', /^Contract: .+/.test((await page.locator('#hud-contract').textContent()) || ''), (await page.locator('#hud-contract').textContent()) || '');
+  check('mission body open before wave 1', await page.locator('#hud-mission-body').isVisible());
+  check('tech unlock tracker shown', ((await page.locator('#hud-unlock').textContent()) || '').includes('(L2)'));
   check('wave preview visible in build phase', await page.locator('#hud-preview').isVisible() && ((await page.locator('#hud-preview-now').textContent()) || '').includes('6x Grunt'), (await page.locator('#hud-preview').textContent()) || '');
   check('wave preview has a then: line', ((await page.locator('#hud-preview-then').textContent()) || '').startsWith('then:'));
   await page.screenshot({ path: `${outDir}/01-loaded.png` });
@@ -117,6 +119,10 @@ try {
   await page.keyboard.press('Space');
   await page.waitForTimeout(300);
   check('Space starts the wave', (await page.evaluate(() => window.__td.world.phase)) === 'wave');
+  check('mission card collapses once wave 1 starts', !(await page.locator('#hud-mission-body').isVisible()) && (await page.locator('#hud-contract').isVisible()));
+  await page.click('#hud-mission-toggle');
+  check('mission toggle reopens the card', await page.locator('#hud-mission-body').isVisible());
+  await page.click('#hud-mission-toggle');
   check('wave banner shows at wave start', (await page.locator('#fx-banner').isVisible()) && /Wave 1/.test((await page.locator('#fx-banner').textContent()) || ''));
   await page.screenshot({ path: `${outDir}/03b-wave-banner.png` });
   await page.waitForTimeout(5700);
@@ -203,10 +209,13 @@ try {
   await waitScreen('level-complete');
   check('level 1 won', (await page.evaluate(() => window.__td.world.phase)) === 'won');
   check('level complete shows a medal', (await page.locator('.medal-big[data-medal]').count()) === 1, await page.locator('.medal-name').textContent());
+  check('level complete shows the contract result', (await page.locator('[data-testid="contract-result"]').count()) === 1, (await page.locator('[data-testid="contract-result"]').textContent()) || '');
+  check('level 1 contract completed (no upgrade beyond L3)', (await page.locator('[data-testid="contract-result"]').getAttribute('data-done')) === 'true');
   check('level complete lists time and unlocks', ((await page.locator('.screen-level-complete').textContent()) || '').includes('Unlocked:'));
   await page.screenshot({ path: `${outDir}/05-end.png` });
 
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('td-save-v1')));
+  check('contract stored in the save', saved.contracts?.[1] === true, JSON.stringify(saved.contracts));
   check('save written with L2 unlocked and medal', saved.unlockedLevel === 2 && !!saved.medals[1], JSON.stringify({ u: saved.unlockedLevel, m: saved.medals }));
 
   await page.click('#btn-next');
@@ -217,6 +226,7 @@ try {
   // ---- reload: progress kept ----
   await page.goto('http://localhost:5199/');
   await waitScreen('start');
+  check('start screen shows the contract total', ((await page.locator('[data-testid="contracts-total"]').textContent()) || '').includes('1 /'));
   check('Continue present after reload', (await page.locator('#btn-continue').count()) === 1, (await page.locator('#btn-continue').textContent()) || '');
   await page.screenshot({ path: `${outDir}/05c-start-continue.png` });
   await page.click('#btn-levels');
@@ -224,6 +234,8 @@ try {
   check('level 2 unlocked after reload', await page.locator('.lvl[data-level="2"]').isEnabled());
   check('level 3 still locked', await page.locator('.lvl[data-level="3"]').isDisabled());
   check('medal shows the R difficulty tag', ((await page.locator('.lvl[data-level="1"] .lvl-diff').textContent()) || '') === 'R');
+  check('level 1 shows the contract badge', (await page.locator('.lvl[data-level="1"] .lvl-contract').count()) === 1 && (await page.locator('.lvl[data-level="2"] .lvl-contract').count()) === 0);
+  check('level select shows the contract count', ((await page.locator('[data-testid="contract-count"]').textContent()) || '').includes('1'));
   check('level 1 shows medal badge', (await page.locator('.lvl[data-level="1"] .lvl-badge img').count()) === 1);
   await page.screenshot({ path: `${outDir}/05d-level-select-progress.png` });
 
@@ -256,12 +268,38 @@ try {
     });
     check(`no horizontal scroll at ${tag}`, m.sw <= m.iw, `scrollWidth=${m.sw} innerWidth=${m.iw}`);
     check(`panels and top bar on screen at ${tag}`, m.top.l >= 0 && m.top.r <= m.iw && m.left.l >= 0 && m.right.r <= m.iw, JSON.stringify({ top: m.top.l, left: m.left.l, right: m.right.r }));
+    const ov = await page.evaluate(() => { const p = document.querySelector('.right-panel .panel-scroll'); return { sh: p.scrollHeight, ch: p.clientHeight }; });
+    check(`right panel has no hidden overflow at ${tag}`, ov.sh <= ov.ch + 1, `scrollHeight=${ov.sh} clientHeight=${ov.ch}`);
     check(`canvas keeps aspect ratio at ${tag}`, Math.abs(m.canvas.w / m.canvas.h - 960 / 528) < 0.02, `${m.canvas.w.toFixed(0)}x${m.canvas.h.toFixed(0)}`);
     return m;
   };
   await layoutCheck(1280, 720, '1280x720');
   await page.screenshot({ path: `${outDir}/06-layout-1280.png` });
   await layoutCheck(1400, 800, '1400x800');
+
+  // ---- boss phases: escorts banner at 50%, enrage banner and tint at 25%, HP bar notches ----
+  await page.goto('http://localhost:5199/?level=10');
+  await page.waitForFunction(() => window.__td && window.__td.world, null, { timeout: 10000 });
+  await page.evaluate(async () => {
+    const { spawnEnemy } = await import('/src/sim/enemies.js');
+    const w = window.__td.world;
+    const b = spawnEnemy(w, 'heavy_boss');
+    b.distance = 200;
+    b.speed = 0.02;
+    window.__bossId = b.id;
+  });
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: `${outDir}/11a-boss-full-hp.png` });
+  await page.evaluate(() => { const b = window.__td.world.enemies.find((e) => e.id === window.__bossId); b.hp = b.maxHp * 0.45; });
+  await page.waitForTimeout(300);
+  check('escorts banner shows below 50% boss HP', /Escorts inbound/.test((await page.locator('#fx-banner').textContent()) || '') && (await page.locator('#fx-banner').isVisible()));
+  check('escorts were spawned', (await page.evaluate(() => window.__td.world.enemies.filter((e) => !e.boss).length)) >= 4);
+  await page.screenshot({ path: `${outDir}/11b-boss-escorts.png` });
+  await page.evaluate(() => { const b = window.__td.world.enemies.find((e) => e.id === window.__bossId); b.hp = b.maxHp * 0.2; });
+  await page.waitForTimeout(300);
+  check('enrage banner shows below 25% boss HP', /Boss enraged/.test((await page.locator('#fx-banner').textContent()) || ''));
+  check('boss is flagged enraged', await page.evaluate(() => window.__td.world.enemies.find((e) => e.id === window.__bossId).enraged === true));
+  await page.screenshot({ path: `${outDir}/11c-boss-enraged.png` });
 
   // ---- sandbox: all 30 towers, one per family, upgrade/sell/targeting, mixed test wave ----
   await page.goto('http://localhost:5199/?sandbox=1');

@@ -5,6 +5,7 @@ import { summarizeTowerStats, summarizeEnemyStats } from './analytics.js';
 import { isLevelUnlocked, hasProgress, summarizeCampaign } from '../core/save.js';
 import { SILVER_MAX_HP_LOST } from '../core/medals.js';
 import { CONTROLS } from './hotkeys.js';
+import { contractFor } from '../sim/contracts.js';
 import { DIFFICULTIES, DIFFICULTY_IDS, getDifficulty } from '../core/difficulty.js';
 
 const CHAPTERS = ['Recon', 'Frontline', 'Breakthrough', 'Siege', 'Final Stand'];
@@ -155,6 +156,7 @@ export function createScreens(sprites, on) {
       h('div.title-art', icon('towers/gatling_turret_l5', 'px-icon xl'), icon('towers/rail_autocannon_l5', 'px-icon xl'), icon('towers/aa_mg_l5', 'px-icon xl')),
       h('h1.title-logo', { 'aria-label': 'Tower Defence' }, icon('ui/title_logo', 'logo-img', 'Tower Defence')),
       h('p.subtitle', { text: '50 missions. 30 towers. Hold the line.' }),
+      progress ? h('p.contracts-total', { 'data-testid': 'contracts-total', text: `Contracts completed: ${summarizeCampaign(save).contracts} / ${levels.length}` }) : null,
       difficultyPicker(save),
       h('div.menu',
         progress ? button(`Continue (Level ${save.unlockedLevel})`, () => on.onContinue(), { primary: true, id: 'btn-continue' }) : null,
@@ -187,6 +189,9 @@ export function createScreens(sprites, on) {
         medal && DIFFICULTIES[save.medalDifficulty?.[id]]?.tag
           ? h('span.lvl-diff', { title: `Medal earned on ${DIFFICULTIES[save.medalDifficulty[id]].name}`, text: DIFFICULTIES[save.medalDifficulty[id]].tag })
           : null,
+        save.contracts?.[id]
+          ? h('span.lvl-contract', { title: `Contract complete: ${contractFor(id).label}`, 'data-contract': 'done', text: '\u2713' })
+          : null,
         h('span.lvl-badge', unlocked
           ? icon(medal ? `ui/medal_${medal}` : 'ui/medal_empty', 'px-icon', medal ? MEDAL_LABEL[medal] : 'no medal')
           : icon('ui/lock', 'px-icon', 'locked')),
@@ -202,10 +207,11 @@ export function createScreens(sprites, on) {
         h('h2', { text: 'Level Select' }),
         difficultyPicker(save, { compact: true }),
         h('div.medal-count',
-          ...['gold', 'silver', 'bronze'].map((m) => h('span', icon(`ui/medal_${m}`, 'px-icon', m), ` ${summary[m]}`))),
+          ...['gold', 'silver', 'bronze'].map((m) => h('span', icon(`ui/medal_${m}`, 'px-icon', m), ` ${summary[m]}`)),
+          h('span.contract-count', { title: 'Optional contracts completed', 'data-testid': 'contract-count', text: `\u2713 ${summary.contracts}` })),
         button('Back', () => on.onToStart(), { id: 'btn-back' })),
       h('div.chapters', ...rows),
-      h('p.legend.muted', 'BOSS = boss wave. Crate = supply drop wave. Gold: no HP lost. Silver: 5 or less. R / V tag = medal earned on Recruit / Veteran.'),
+      h('p.legend.muted', 'BOSS = boss wave. Crate = supply drop wave. Gold: no HP lost. Silver: 5 or less. R / V tag = medal earned on Recruit / Veteran. Green check = optional contract done.'),
     ]);
   }
 
@@ -226,7 +232,7 @@ export function createScreens(sprites, on) {
   }
 
   // ---- Level Complete ----
-  function showLevelComplete({ world, medal, hpLost, improved, nextUnlocks }) {
+  function showLevelComplete({ world, medal, hpLost, improved, nextUnlocks, contract }) {
     const hint = medal === 'gold' ? null
       : medal === 'silver' ? 'Gold needs no HP lost.'
         : `Silver needs ${SILVER_MAX_HP_LOST} or less HP lost, Gold none.`;
@@ -235,6 +241,7 @@ export function createScreens(sprites, on) {
       h('div.medal-big', { 'data-medal': medal }, icon(`ui/medal_${medal}_lg`, 'px-icon lg', MEDAL_LABEL[medal]),
         h('div.medal-name', { text: `${MEDAL_LABEL[medal]} Medal${improved ? '  (new best)' : ''}` })),
       hint ? h('p.muted', { text: hint }) : null,
+      contractLine(contract),
       h('div.stat-row',
         stat('Time', formatTime(world.time)),
         stat('HP lost', `${hpLost} / ${world.maxHp}`),
@@ -270,14 +277,16 @@ export function createScreens(sprites, on) {
   }
 
   // ---- Game End ----
-  function showGameEnd({ world, save, medal }) {
+  function showGameEnd({ world, save, medal, contract }) {
     const sum = summarizeCampaign(save);
     mount('game-end', [
       h('h1.title', { text: 'CAMPAIGN COMPLETE' }),
       h('p', { text: `Level 50 cleared with a ${MEDAL_LABEL[medal]} medal.` }),
+      contractLine(contract),
       h('div.stat-row',
         ...['gold', 'silver', 'bronze'].map((m) => h('div.stat', icon(`ui/medal_${m}`, 'px-icon md', m), h('b', { text: String(sum[m]) }), h('span', { text: MEDAL_LABEL[m] }))),
         stat('Levels cleared', `${sum.cleared} / ${levels.length}`),
+        stat('Contracts', `${sum.contracts} / ${levels.length}`),
         stat('Play time', formatTime(sum.playTime))),
       h('section.an-panel', { 'data-panel': 'best-towers' }, h('h3', { text: 'Best Towers' }),
         sum.bestTowers.length
@@ -291,6 +300,13 @@ export function createScreens(sprites, on) {
       h('details.final-run', h('summary', { text: 'Level 50 recap' }), analyticsPanels(world)),
     ], { dim: true });
   }
+
+  /** "Contract complete" / "Contract failed" line with the rule that was set. */
+  const contractLine = (contract) => contract
+    ? h('div.contract-result' + (contract.done ? '.done' : '.failed'), { 'data-testid': 'contract-result', 'data-done': contract.done ? 'true' : 'false' },
+      h('b', { text: contract.done ? 'Contract complete \u2713' : 'Contract failed \u2717' }),
+      h('span', { text: ` ${contract.label}` }))
+    : null;
 
   const stat = (label, value) => h('div.stat', h('b', { text: value }), h('span', { text: label }));
 
