@@ -333,7 +333,9 @@ export function createRenderer(canvas, sprites) {
         // small gold number that rises and fades; stays above the unit, outlined so it reads on any ground
         const rise = 22 * (1 - (1 - t) * (1 - t));
         ctx.globalAlpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4;
-        ctx.font = `bold ${f.big ? 15 : 12}px "Courier New", monospace`;
+        // size in backing-store px so it reads as 14px (18px for big) on screen whatever the display scale
+        const shown = canvas.clientWidth > 0 ? canvas.clientWidth / canvas.width : 1;
+        ctx.font = `600 ${Math.ceil((f.big ? 18 : 14) / shown)}px "IBM Plex Mono", "Courier New", monospace`;
         ctx.textAlign = 'center';
         ctx.lineWidth = 3;
         ctx.strokeStyle = 'rgba(10,12,10,0.85)';

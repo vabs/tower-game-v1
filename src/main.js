@@ -27,8 +27,19 @@ function levelFromUrl() {
 
 const sandbox = new URLSearchParams(location.search).get('sandbox') === '1';
 
+/** Fonts are inlined in the build; make sure they are decoded before the first frame (canvas text uses them too). */
+async function loadFonts() {
+  try {
+    await Promise.all([
+      document.fonts.load('400 16px "Silkscreen"'), document.fonts.load('700 16px "Silkscreen"'),
+      document.fonts.load('500 16px "IBM Plex Mono"'), document.fonts.load('600 16px "IBM Plex Mono"'),
+    ]);
+    await document.fonts.ready;
+  } catch { /* fall back to the system monospace stack */ }
+}
+
 async function boot() {
-  const sprites = await loadSprites();
+  const [sprites] = await Promise.all([loadSprites(), loadFonts()]);
   const canvas = document.getElementById('game');
   const renderer = createRenderer(canvas, sprites);
   const urlLevel = levelFromUrl();

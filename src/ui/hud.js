@@ -52,7 +52,8 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     selName: $('hud-selected'), selRange: $('hud-range'), selDps: $('hud-dps'), selLevel: $('hud-sel-level'),
     selDamage: $('hud-damage'), selRate: $('hud-rate'), special: $('hud-special'), buffs: $('hud-buffs'),
     targeting: $('hud-targeting'), upgrade: $('hud-upgrade'), sell: $('hud-sell'),
-    pause: $('hud-pause'), speed: $('hud-speed'), speedIcon: $('hud-speed-icon'), pauseIcon: $('hud-pause-icon'), medal: $('hud-medal'), brief: $('hud-brief'), unlock: $('hud-unlock'),
+    hpIcon: $('hud-hp-icon'), coinIcon: $('hud-coin-icon'),
+    pause: $('hud-pause'), speed: $('hud-speed'), speedIcon: $('hud-speed-icon'), speedLabel: $('hud-speed-label'), pauseIcon: $('hud-pause-icon'), medal: $('hud-medal'), brief: $('hud-brief'), unlock: $('hud-unlock'),
     mission: $('hud-mission'), missionToggle: $('hud-mission-toggle'), missionBody: $('hud-mission-body'), contract: $('hud-contract'),
     edge: $('fx-edge'), banner: $('fx-banner'), coinsChip: $('hud-coins-chip'), hpChip: $('hud-hp-chip'),
     preview: $('hud-preview'), previewHead: $('hud-preview-head'), previewNow: $('hud-preview-now'), previewThen: $('hud-preview-then'),
@@ -67,6 +68,8 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
   el.missionToggle.addEventListener('click', () => setMissionOpen(el.missionBody.hidden));
   const setSrc = (img, key) => { const sp = sprites[key]; if (sp && img.getAttribute('src') !== sp.src) img.src = sp.src; };
   setSrc(el.pauseIcon, 'ui/pause');
+  setSrc(el.hpIcon, 'ui/heart');
+  setSrc(el.coinIcon, 'ui/coin');
   let buttons = [];
   let msgTimer = null;
   let specialKey = '';
@@ -281,7 +284,7 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     const cur = summarizeWave(world.waves[world.waveIndex], world.level, { hpMult });
     const nxt = summarizeWave(world.waves[world.waveIndex + 1], world.level, { hpMult });
     const live = world.phase === 'wave';
-    el.previewHead.textContent = `${live ? 'Wave' : 'Next wave'} ${world.waveIndex + 1}/${total}${live ? ' (running)' : ''}`;
+    el.previewHead.textContent = `${live ? 'Wave' : 'Next'} ${world.waveIndex + 1}/${total}${live ? ' live' : ''}`;
     el.previewNow.textContent = '';
     el.previewThen.textContent = '';
     if (!cur) return;
@@ -384,6 +387,7 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     if (el.speed.dataset.speed !== String(sp)) {
       el.speed.dataset.speed = String(sp);
       el.speed.setAttribute('aria-label', `Game speed ${sp}x`);
+      el.speedLabel.textContent = `${sp}x`;
     }
     setSrc(el.medal, `ui/medal_${medalFor(world.stats.hpLost)}`);
 
