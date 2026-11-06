@@ -13,6 +13,7 @@ import { enemies } from '../src/data/enemies.js';
 import { bosses } from '../src/data/bosses.js';
 import { levelScaling } from '../src/data/waves.js';
 import { buildSpawnQueue } from '../src/sim/spawner.js';
+import { createRng } from '../src/core/rng.js';
 import { TILE_SIZE } from '../src/core/grid.js';
 import { positionAt, pathLength } from '../src/core/path.js';
 
@@ -89,6 +90,7 @@ const lvOf = (tower) => tower.def.levels[tower.level - 1];
 /** Demand arrays from the world: what still has to be killed on each stretch of route. */
 function buildDemand(world, S) {
   const scale = levelScaling(world.level);
+  const hpMult = world.difficulty?.hpMult ?? 1;
   const R = new Float64Array(S.n);
   const TW = new Float64Array(S.n);
   const DW = new Float64Array(S.n);
@@ -115,7 +117,7 @@ function buildDemand(world, S) {
   const groupDensity = (interval, speed) => 1 / Math.max(0.2, interval * speed / TILE_SIZE); // enemies per tile
   const addGroup = (g, weight) => {
     const def = DEFS.get(g.id);
-    const hp = def.hp * scale.hp * (def.boss ? scale.boss : 1);
+    const hp = def.hp * scale.hp * (def.boss ? scale.boss : 1) * hpMult;
     shares.forEach((sh, pi) => {
       if (!sh) return;
       const info = add(g.id, hp, g.count * sh, pi, 0, weight);
@@ -267,9 +269,20 @@ function value(C, dem, W, S) {
   return v;
 }
 
-/** Run the bot on one level/seed. */
-export function runBot(level, seed, { verbose = false } = {}) {
-  const world = createWorld(level, { seed });
+/**
+ * Run the bot on one level/seed.
+ * Options (the "human proxy" of the difficulty review is `HUMAN_PROFILE`):
+ *  - difficulty: 'recruit' | 'regular' | 'veteran' (real world option)
+ *  - buildOnly: buy/upgrade only in build phases, never mid-wave
+ *  - placement: 1 = best legal placement; 0.7 = a legal placement worth ~65-75% of the best one
+ *    (separate rng seeded from level/seed, so the sim rng is untouched)
+ *  - firstOnly: every tower targets 'first' (no air priority, no tuning)
+ */
+export const HUMAN_PROFILE = { buildOnly: true, placement: 0.7, firstOnly: true };
+
+export function runBot(level, seed, { verbose = false, difficulty, buildOnly = false, placement = 1, firstOnly = false } = {}) {
+  const world = createWorld(level, { seed, difficulty });
+  const choiceRng = createRng(seed * 1009 + level * 7919);
   const S = buildSamples(world.map);
   const tiles = buildTileIndex(world, S);
   const tileIdx = new Map(tiles.map((t) => [`${t.tx},${t.ty}`, t]));
@@ -294,7 +307,12 @@ export function runBot(level, seed, { verbose = false } = {}) {
     for (let i = 0; i < S.n; i++) room[i] = dem.R[i] * MARGIN - base.C[i];
     const occupied = new Set(world.towers.map((t) => `${t.tx},${t.ty}`));
     let best = null;
-    const consider = (score, act) => { if (score > 0 && (!best || score > best.score)) best = { score, ...act }; };
+    const candidates = [];
+    const consider = (score, act) => {
+      if (score <= 0) return;
+      if (placement < 1) candidates.push({ score, ...act });
+      if (!best || score > best.score) best = { score, ...act };
+    };
 
     // incremental gain for non-modifier towers: placement or upgrade
     const gainPlain = (def, lv, ti, oldLv, auraFr, auraRg) => {
@@ -360,7 +378,14 @@ export function runBot(level, seed, { verbose = false } = {}) {
       }
     }
     if (!best) return false;
+    if (best.kind === 'place' && placement < 1) {
+      const goal = best.score * (placement - 0.05 + 0.1 * choiceRng.next());
+      // keep the greedy tower type, degrade only the legal placement
+      const same = candidates.filter((c) => c.kind === 'place' && c.def.id === best.def.id);
+      best = same.reduce((a, b) => (Math.abs(a.score - goal) < Math.abs(b.score - goal) ? a : b));
+    }
     const r = best.kind === 'place' ? placeTower(world, best.def.id, best.tx, best.ty) : upgradeTower(world, best.t.id);
+    if (r.ok && r.tower && firstOnly) r.tower.targeting = 'first';
     return r.ok;
   }
 
@@ -383,7 +408,7 @@ export function runBot(level, seed, { verbose = false } = {}) {
       if (verbose) console.log(`  wave ${world.waveIndex + 1}/${world.waves.length} t=${world.time.toFixed(0)} hp=${world.hp} coins=${world.coins} towers=${world.towers.length}`);
       startWave(world);
       lastKey = '';
-    } else if (world.time >= nextAssess) {
+    } else if (!buildOnly && world.time >= nextAssess) {
       nextAssess = world.time + REASSESS;
       if (world.coins >= cheapest) {
         dem = buildDemand(world, S);
