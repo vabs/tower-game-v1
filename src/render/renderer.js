@@ -3,13 +3,20 @@ import { towerStats, towerLevel, dronePosition } from '../sim/towers.js';
 
 const S = TILE_SIZE; // sprites are 24px, drawn at 2x == one tile
 
-const TILE_SPRITE = {
-  buildable: 'tiles/buildable',
-  blocked: 'tiles/blocked',
-  path: 'tiles/path',
-  spawn: 'tiles/spawn',
-  goal: 'tiles/goal',
-};
+const PROPS = ['crates', 'fuel_drums', 'sandbags', 'wreck', 'rubble', 'fence', 'comms_tower'];
+const ENEMY_SCALE = 3; // 24px sprite -> 72px canvas (art occupies the middle ~half)
+const BOSS_BASE = 36; // boss sprites are 36x36
+
+/** Deterministic integer hash of a tile coordinate (+ salt). */
+function hash(x, y, salt = 0) {
+  let h = (Math.imul(x + 1, 374761393) + Math.imul(y + 1, 668265263) + Math.imul(salt + 1, 2147483647)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
+function mapType(map) {
+  return map.type ?? String(map.id ?? '').split('_')[0];
+}
 
 export function createRenderer(canvas, sprites) {
   const ctx = canvas.getContext('2d');
@@ -34,10 +41,187 @@ export function createRenderer(canvas, sprites) {
     ctx.stroke();
   }
 
-  function drawTiles(map) {
+  // ---- static map layer, pre-rendered once per map ----
+  const mapCache = new WeakMap();
+
+  function buildMapLayer(map) {
+    const c = document.createElement('canvas');
+    c.width = map.w * S;
+    c.height = map.h * S;
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    const put = (name, x, y, w = S, h = S) => {
+      const img = sprites[name];
+      if (img) g.drawImage(img, x, y, w, h);
+      else { g.fillStyle = '#f0f'; g.fillRect(x, y, w, h); }
+    };
+    const open = mapType(map) === 'open';
+    const isRoad = (x, y) => {
+      const k = map.kind(x, y);
+      return k === 'path' || k === 'spawn' || k === 'goal';
+    };
     for (let y = 0; y < map.h; y++) {
-      for (let x = 0; x < map.w; x++) sprite(TILE_SPRITE[map.tiles[y][x]], x * S, y * S);
+      for (let x = 0; x < map.w; x++) {
+        put(`tiles/ground_${(hash(x, y) % 3) + 1}`, x * S, y * S);
+      }
     }
+    // road / track
+    for (let y = 0; y < map.h; y++) {
+      for (let x = 0; x < map.w; x++) {
+        if (map.tiles[y][x] !== 'path' || open) continue;
+        const px = x * S;
+        const py = y * S;
+        g.fillStyle = '#4b4b48';
+        g.fillRect(px, py, S, S);
+        for (let i = 0; i < 5; i++) {
+          const hh = hash(x, y, 20 + i);
+          g.fillStyle = hh & 1 ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.14)';
+          g.fillRect(px + 2 + (hh % (S - 6)), py + 2 + ((hh >>> 8) % (S - 6)), 3, 2);
+        }
+      }
+    }
+    if (!open) {
+      for (let y = 0; y < map.h; y++) {
+        for (let x = 0; x < map.w; x++) {
+          if (map.tiles[y][x] !== 'path') continue;
+          const px = x * S;
+          const py = y * S;
+          g.fillStyle = '#25251f';
+          if (!isRoad(x, y - 1)) g.fillRect(px, py, S, 3);
+          if (!isRoad(x, y + 1)) g.fillRect(px, py + S - 3, S, 3);
+          if (!isRoad(x - 1, y)) g.fillRect(px, py, 3, S);
+          if (!isRoad(x + 1, y)) g.fillRect(px + S - 3, py, 3, S);
+          g.fillStyle = 'rgba(0,0,0,0.25)';
+          if (!isRoad(x, y - 1)) g.fillRect(px, py + 3, S, 2);
+          if (!isRoad(x, y + 1)) g.fillRect(px, py + S - 5, S, 2);
+          if (!isRoad(x - 1, y)) g.fillRect(px + 3, py, 2, S);
+          if (!isRoad(x + 1, y)) g.fillRect(px + S - 5, py, 2, S);
+          g.fillStyle = 'rgba(230,200,90,0.55)';
+          const cx = px + S / 2 - 1;
+          const cy = py + S / 2 - 1;
+          const horiz = isRoad(x - 1, y) || isRoad(x + 1, y);
+          const vert = isRoad(x, y - 1) || isRoad(x, y + 1);
+          if (horiz) { g.fillRect(px + 6, cy, 8, 2); g.fillRect(px + 30, cy, 8, 2); }
+          if (vert) { g.fillRect(cx, py + 6, 2, 8); g.fillRect(cx, py + 30, 2, 8); }
+        }
+      }
+    }
+    // blocked: ground + deterministic prop
+    for (let y = 0; y < map.h; y++) {
+      for (let x = 0; x < map.w; x++) {
+        if (map.tiles[y][x] !== 'blocked') continue;
+        g.fillStyle = 'rgba(0,0,0,0.1)';
+        g.fillRect(x * S, y * S, S, S);
+        put(`props/${PROPS[hash(x, y, 3) % PROPS.length]}`, x * S, y * S);
+      }
+    }
+    // open maps: dashed beacon route + waypoint posts
+    if (open) {
+      const tp = map.tilePaths ?? [];
+      g.save();
+      tp.forEach((wps) => {
+        g.beginPath();
+        wps.forEach((w, i) => {
+          const X = w.x * S + S / 2;
+          const Y = w.y * S + S / 2;
+          if (i) g.lineTo(X, Y); else g.moveTo(X, Y);
+        });
+        g.strokeStyle = 'rgba(0,0,0,0.35)';
+        g.lineWidth = 6;
+        g.setLineDash([10, 12]);
+        g.stroke();
+        g.strokeStyle = 'rgba(255,214,110,0.8)';
+        g.lineWidth = 3;
+        g.stroke();
+      });
+      g.restore();
+      const seen = new Set();
+      tp.forEach((wps) => wps.forEach((w, i) => {
+        const k = `${w.x},${w.y}`;
+        if (i === 0 || i === wps.length - 1 || seen.has(k)) return;
+        seen.add(k);
+        put('tiles/waypoint', w.x * S, w.y * S);
+      }));
+    }
+    for (let y = 0; y < map.h; y++) {
+      for (let x = 0; x < map.w; x++) {
+        const k = map.tiles[y][x];
+        if (k === 'spawn' || k === 'goal') {
+          g.fillStyle = 'rgba(20,20,18,0.55)';
+          g.fillRect(x * S, y * S, S, S);
+          put(k === 'spawn' ? 'tiles/spawn' : 'tiles/goal', x * S, y * S);
+        }
+      }
+    }
+    return c;
+  }
+
+  function drawMapLayer(map) {
+    let layer = mapCache.get(map);
+    if (!layer) { layer = buildMapLayer(map); mapCache.set(map, layer); }
+    ctx.drawImage(layer, 0, 0);
+  }
+
+  /** Pulsing chevrons at spawns, hazard ring at goal (animated, so not in the cache). */
+  function drawMarkers(map, t) {
+    const pulse = 0.5 + 0.5 * Math.sin(t * 4);
+    const seen = new Set();
+    for (const wps of map.tilePaths ?? []) {
+      const a = wps[0];
+      const n = wps[1];
+      const k = `${a.x},${a.y}`;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      const ang = Math.atan2(Math.sign(n.y - a.y), Math.sign(n.x - a.x));
+      ctx.save();
+      ctx.translate(a.x * S + S / 2, a.y * S + S / 2);
+      ctx.rotate(ang);
+      for (let i = 0; i < 2; i++) {
+        const off = 8 + i * 9 + pulse * 5;
+        ctx.globalAlpha = (i ? 0.55 : 0.9) * (0.5 + 0.5 * pulse);
+        ctx.strokeStyle = '#9fe0ff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(off - 5, -9);
+        ctx.lineTo(off + 3, 0);
+        ctx.lineTo(off - 5, 9);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+    ctx.save();
+    ctx.translate(map.goal.x * S + S / 2, map.goal.y * S + S / 2);
+    ctx.lineWidth = 3;
+    const rr = S / 2 + 3 + pulse * 2;
+    ctx.strokeStyle = `rgba(255,90,70,${0.6 + 0.35 * pulse})`;
+    ctx.beginPath();
+    ctx.arc(0, 0, rr, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([6, 6]);
+    ctx.lineDashOffset = -t * 12;
+    ctx.strokeStyle = 'rgba(255,220,80,0.85)';
+    ctx.beginPath();
+    ctx.arc(0, 0, rr, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawGhostGrid(g) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    const R = 3;
+    for (let i = -R; i <= R + 1; i++) {
+      const x = (g.tx + i) * S + 0.5;
+      const y = (g.ty + i) * S + 0.5;
+      ctx.moveTo(x, (g.ty - R) * S);
+      ctx.lineTo(x, (g.ty + R + 1) * S);
+      ctx.moveTo((g.tx - R) * S, y);
+      ctx.lineTo((g.tx + R + 1) * S, y);
+    }
+    ctx.stroke();
+    ctx.restore();
   }
 
   // ---- short-lived visual effects (real time, purely cosmetic) ----
@@ -148,29 +332,63 @@ export function createRenderer(canvas, sprites) {
     ctx.fillRect(d.x + 3, d.y - 3, 4, 1);
   }
 
-  function drawEnemy(e, tNow) {
-    if (e.air) {
-      ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      ctx.beginPath();
-      ctx.ellipse(e.x, e.y + 14, 14, 5, 0, 0, Math.PI * 2);
-      ctx.fill();
+  const lastPos = new Map(); // enemy id -> {x,y,ang,flip}
+
+  function facing(e) {
+    let st = lastPos.get(e.id);
+    if (!st) { st = { x: e.x, y: e.y, ang: Math.PI / 2, flip: false }; lastPos.set(e.id, st); }
+    const dx = e.x - st.x;
+    const dy = e.y - st.y;
+    if (dx * dx + dy * dy > 0.04) {
+      st.ang = Math.atan2(dy, dx);
+      if (Math.abs(dx) > 0.02) st.flip = dx < 0;
+      st.x = e.x;
+      st.y = e.y;
     }
-    const yOff = e.air ? -8 : 0;
-    sprite(`enemies/${e.defId}`, e.x - S / 2, e.y - S / 2 + yOff);
+    return st;
+  }
+
+  function drawEnemy(e, tNow) {
+    const f = facing(e);
+    const boss = e.boss && sprites[`bosses/${e.defId}`];
+    const key = boss ? `bosses/${e.defId}` : `enemies/${e.defId}`;
+    const px = boss ? Math.round(BOSS_BASE * (e.scale ?? 1) * (4 / 3)) : Math.round(24 * ENEMY_SCALE * (e.scale ?? 1));
+    const half = px / 2;
+    const ex = Math.round(e.x);
+    const ey = Math.round(e.y);
+    const lift = e.air ? 12 : 0;
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.beginPath();
+    ctx.ellipse(ex, ey + (e.air ? half * 0.45 + 6 : half * 0.35), half * (e.air ? 0.5 : 0.55), half * (e.air ? 0.16 : 0.2), 0, 0, Math.PI * 2);
+    ctx.fill();
+    const cy = ey - lift;
+    const img = sprites[key];
+    ctx.save();
+    ctx.translate(ex, cy);
+    if (boss) ctx.rotate(f.ang + Math.PI / 2); // boss art faces up
+    else if (f.flip) ctx.scale(-1, 1);
+    if (img) ctx.drawImage(img, -half, -half, px, px);
+    else { ctx.fillStyle = '#f0f'; ctx.fillRect(-half, -half, px, px); }
+    ctx.restore();
     const st = e.status;
-    if (st.slow) { ctx.globalAlpha = 0.65; sprite('fx/slow_overlay', e.x - S / 2, e.y - S / 2 + yOff); ctx.globalAlpha = 1; }
-    if (st.burn) { ctx.globalAlpha = 0.5 + 0.3 * Math.sin(tNow * 18); sprite('fx/burn_overlay', e.x - S / 2, e.y - S / 2 + yOff); ctx.globalAlpha = 1; }
-    if (st.stun && Math.floor(tNow * 14) % 2 === 0) sprite('fx/hit_spark', e.x - 12, e.y - S / 2 + yOff - 16, 24, 24);
-    const w = 32;
-    const bx = e.x - w / 2;
-    const by = e.y - S / 2 + yOff - 2;
-    ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(bx - 1, by - 1, w + 2, 6);
-    const f = Math.max(0, e.hp / e.maxHp);
-    ctx.fillStyle = f > 0.5 ? '#5ec96a' : f > 0.25 ? '#e0c040' : '#e05050';
-    ctx.fillRect(bx, by, w * f, 4);
-    if (st.paint) { ctx.fillStyle = '#ff5a5a'; ctx.fillRect(bx, by - 5, 5, 4); }
-    if (st.armor) { ctx.fillStyle = '#ffa040'; ctx.fillRect(bx + 7, by - 5, 5, 4); }
+    const ox = ex - half;
+    const oy = cy - half;
+    if (st.slow) { ctx.globalAlpha = 0.65; sprite('fx/slow_overlay', ox, oy, px, px); ctx.globalAlpha = 1; }
+    if (st.burn) { ctx.globalAlpha = 0.5 + 0.3 * Math.sin(tNow * 18); sprite('fx/burn_overlay', ox, oy, px, px); ctx.globalAlpha = 1; }
+    if (st.stun && Math.floor(tNow * 14) % 2 === 0) sprite('fx/hit_spark', ex - 12, oy - 14, 24, 24);
+    if (e.hp < e.maxHp || e.boss) {
+      const w = e.boss ? 64 : 32;
+      const h = e.boss ? 6 : 4;
+      const bx = ex - w / 2;
+      const by = Math.round(cy - (boss ? half * 0.8 : 26)) - 6;
+      ctx.fillStyle = '#111';
+      ctx.fillRect(bx - 1, by - 1, w + 2, h + 2);
+      const fr = Math.max(0, Math.min(1, e.hp / e.maxHp));
+      ctx.fillStyle = fr > 0.5 ? '#5ec96a' : fr > 0.25 ? '#e0c040' : '#e05050';
+      ctx.fillRect(bx, by, Math.round(w * fr), h);
+      if (st.paint) { ctx.fillStyle = '#ff5a5a'; ctx.fillRect(bx, by - 5, 5, 4); }
+      if (st.armor) { ctx.fillStyle = '#ffa040'; ctx.fillRect(bx + 7, by - 5, 5, 4); }
+    }
   }
 
   /**
@@ -182,7 +400,8 @@ export function createRenderer(canvas, sprites) {
     const now = performance.now() / 1000;
     const dt = lastT === null ? 0 : Math.min(0.1, now - lastT);
     lastT = now;
-    drawTiles(world.map);
+    drawMapLayer(world.map);
+    drawMarkers(world.map, now);
     for (const f of world.fields ?? []) drawField(f);
 
     const sel = view.selectedTowerId != null ? world.towers.find((t) => t.id === view.selectedTowerId) : null;
@@ -212,7 +431,12 @@ export function createRenderer(canvas, sprites) {
       ctx.strokeRect(sel.tx * S + 1, sel.ty * S + 1, S - 2, S - 2);
     }
 
-    for (const e of world.enemies) drawEnemy(e, now);
+    if (lastPos.size > world.enemies.length + 64) {
+      const live = new Set(world.enemies.map((e) => e.id));
+      for (const id of lastPos.keys()) if (!live.has(id)) lastPos.delete(id);
+    }
+    const drawOrder = [...world.enemies].sort((a, b) => (a.air - b.air) || a.y - b.y);
+    for (const e of drawOrder) drawEnemy(e, now);
     for (const p of world.projectiles) drawProjectile(p);
     drawFx(dt);
 
@@ -220,6 +444,7 @@ export function createRenderer(canvas, sprites) {
     if (g) {
       const cx = g.tx * S + S / 2;
       const cy = g.ty * S + S / 2;
+      drawGhostGrid(g);
       ring(cx, cy, g.range * S, g.valid);
       ctx.globalAlpha = 0.7;
       sprite(`towers/${g.typeId}_l1`, g.tx * S, g.ty * S);
