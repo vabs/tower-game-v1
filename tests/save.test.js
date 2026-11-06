@@ -88,14 +88,14 @@ test('campaign summary aggregates medals and best towers', () => {
 import { DEFAULT_SETTINGS, normalizeSettings } from '../src/core/save.js';
 
 test('settings default to music 0.6, sfx 0.8, unmuted', () => {
-  expect(freshSave().settings).toEqual({ music: 0.6, sfx: 0.8, muted: false });
-  expect(DEFAULT_SETTINGS).toEqual({ music: 0.6, sfx: 0.8, muted: false });
+  expect(freshSave().settings).toEqual({ music: 0.6, sfx: 0.8, muted: false, autoWave: false });
+  expect(DEFAULT_SETTINGS).toEqual({ music: 0.6, sfx: 0.8, muted: false, autoWave: false });
 });
 
 test('old saves without settings migrate to the defaults', () => {
   const storage = fakeStorage({ [SAVE_KEY]: JSON.stringify({ version: 1, unlockedLevel: 3, medals: {}, stats: { playTime: 0, towers: {} } }) });
   const s = loadSave(storage);
-  expect(s.settings).toEqual({ music: 0.6, sfx: 0.8, muted: false });
+  expect(s.settings).toEqual({ music: 0.6, sfx: 0.8, muted: false, autoWave: false });
   expect(s.unlockedLevel).toBe(3);
 });
 
@@ -104,9 +104,19 @@ test('settings round-trip and are sanitised', () => {
   const save = freshSave();
   save.settings = { music: 0.25, sfx: 1, muted: true };
   writeSave(save, storage);
-  expect(loadSave(storage).settings).toEqual({ music: 0.25, sfx: 1, muted: true });
-  expect(normalizeSettings({ music: 7, sfx: -2, muted: 'yes' })).toEqual({ music: 1, sfx: 0, muted: false });
-  expect(normalizeSettings({ music: 'loud', sfx: NaN })).toEqual({ music: 0.6, sfx: 0.8, muted: false });
-  expect(normalizeSettings({ music: 0.3 })).toEqual({ music: 0.3, sfx: 0.8, muted: false });
-  expect(normalizeSettings(null)).toEqual({ music: 0.6, sfx: 0.8, muted: false });
+  expect(loadSave(storage).settings).toEqual({ music: 0.25, sfx: 1, muted: true, autoWave: false });
+  expect(normalizeSettings({ music: 7, sfx: -2, muted: 'yes' })).toEqual({ music: 1, sfx: 0, muted: false, autoWave: false });
+  expect(normalizeSettings({ music: 'loud', sfx: NaN })).toEqual({ music: 0.6, sfx: 0.8, muted: false, autoWave: false });
+  expect(normalizeSettings({ music: 0.3 })).toEqual({ music: 0.3, sfx: 0.8, muted: false, autoWave: false });
+  expect(normalizeSettings(null)).toEqual({ music: 0.6, sfx: 0.8, muted: false, autoWave: false });
+});
+
+test('auto-wave setting defaults off, round-trips, and rejects non-booleans', () => {
+  expect(freshSave().settings.autoWave).toBe(false);
+  const storage = fakeStorage();
+  const save = freshSave();
+  save.settings.autoWave = true;
+  writeSave(save, storage);
+  expect(loadSave(storage).settings.autoWave).toBe(true);
+  expect(normalizeSettings({ autoWave: 'yes' }).autoWave).toBe(false);
 });

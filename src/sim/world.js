@@ -1,4 +1,5 @@
 import { createRng } from '../core/rng.js';
+import { startWave } from './commands.js';
 import { levels, getUnlocksForLevel } from '../data/levels.js';
 import { maps, mapIdForLevel } from '../data/maps.js';
 import { loadMap } from './map.js';
@@ -39,7 +40,7 @@ export function startingCoins(level) {
  */
 
 /** Pure and deterministic given `seed`. */
-export function createWorld(levelId, { seed = 1, unlocked, coins, hp, difficulty } = {}) {
+export function createWorld(levelId, { seed = 1, unlocked, coins, hp, difficulty, autoWave = false } = {}) {
   const level = levels[levelId - 1];
   if (!level) throw new Error(`unknown level ${levelId}`);
   const diff = getDifficulty(difficulty);
@@ -53,6 +54,7 @@ export function createWorld(levelId, { seed = 1, unlocked, coins, hp, difficulty
     waves: buildWaves(levelId),
     countdown: null,
     countdownLength: WAVE_COUNTDOWN,
+    autoWave: !!autoWave, // call each wave as soon as the previous one is cleared (not the first)
     spawner: null,
     difficulty: diff,
     coins: coins ?? Math.round(startingCoins(levelId) * diff.coinMult),
@@ -76,6 +78,8 @@ export function createWorld(levelId, { seed = 1, unlocked, coins, hp, difficulty
 export function step(world, dt = STEP) {
   if (world.phase === 'won' || world.phase === 'lost') return;
   world.time += dt;
+  // Auto-wave: the countdown only runs after a cleared wave, so the first wave still waits for the player.
+  if (world.autoWave && world.phase === 'build' && world.countdown !== null) startWave(world);
   updateSpawner(world, dt);
   updateEffects(world, dt);
   updateEnemies(world, dt);

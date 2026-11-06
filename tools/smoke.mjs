@@ -206,6 +206,25 @@ try {
   check('speed button wraps back to 1x', (await page.locator('#hud-speed').getAttribute('data-speed')) === '1');
   await page.keyboard.press('1');
 
+  // ---- auto-wave toggle: button + A hotkey, saved in settings, calls the next wave right after a clear ----
+  check('auto-wave starts off', (await page.locator('#hud-auto').getAttribute('aria-pressed')) === 'false');
+  await page.click('#hud-auto');
+  await page.waitForTimeout(100);
+  check('auto-wave button turns it on', (await page.locator('#hud-auto').getAttribute('aria-pressed')) === 'true' && (await page.evaluate(() => window.__td.world.autoWave)) === true);
+  check('auto-wave is saved', (await page.evaluate(() => JSON.parse(localStorage.getItem('td-save-v1')).settings.autoWave)) === true);
+  const autoChain = await page.evaluate(async () => {
+    const { step } = await import('/src/sim/world.js');
+    const w = window.__td.world;
+    const startIdx = w.waveIndex;
+    for (let i = 0; i < 60 * 300 && w.waveIndex === startIdx; i++) { for (const e of w.enemies) { e.hp = 0; e.dead = true; } step(w, 1 / 60); }
+    step(w, 1 / 60);
+    return { cleared: w.waveIndex > startIdx, phase: w.phase };
+  });
+  check('auto-wave calls the next wave right after a clear', autoChain.cleared && (autoChain.phase === 'wave' || autoChain.phase === 'won'), JSON.stringify(autoChain));
+  await page.keyboard.press('a');
+  await page.waitForTimeout(100);
+  check('A hotkey turns auto-wave off', (await page.locator('#hud-auto').getAttribute('aria-pressed')) === 'false' && (await page.evaluate(() => window.__td.world.autoWave)) === false);
+
   // ---- window blur / hidden tab auto-pauses an active level ----
   await page.evaluate(() => window.dispatchEvent(new Event('blur')));
   await waitScreen('paused');

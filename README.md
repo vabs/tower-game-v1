@@ -33,6 +33,7 @@ In dev builds the running state is exposed as `window.__td` (`world`, `app`, `sm
 | Click a placed tower | Select it (upgrade, sell, targeting) |
 | Right click | Cancel placement |
 | Space | Start the next wave, or call it early |
+| A | Auto-wave on/off: each wave starts as soon as the previous one is cleared (the first wave still waits for you); also the **Auto** button in the top bar |
 | U | Upgrade the selected tower |
 | S or Delete | Sell the selected tower (press twice within 1.5 s during a wave) |
 | T | Cycle targeting of the selected tower |

@@ -219,6 +219,7 @@ h4 {
 
 /* ---- buttons (HUD) ---- */
 #hud-start,
+#hud-auto,
 #hud-pause,
 #hud-speed,
 #hud-mute,
@@ -235,6 +236,7 @@ h4 {
   cursor: pointer;
 }
 #hud-start,
+#hud-auto,
 #hud-pause,
 #hud-speed,
 #hud-mute,
@@ -251,7 +253,7 @@ h4 {
 }
 #hud-spawn-test { background: #5a3b3b; border-color: #8a5c5c; }
 #hud-spawn-test[hidden] { display: none; }
-:is(#hud-start, #hud-pause, #hud-speed, #hud-mute, #hud-upgrade, #hud-sell, #hud-targeting, .hud-tower-list button, .btn, .diff-btn):hover:not(:disabled) { border-color: var(--good); }
+:is(#hud-start, #hud-auto, #hud-pause, #hud-speed, #hud-mute, #hud-upgrade, #hud-sell, #hud-targeting, .hud-tower-list button, .btn, .diff-btn):hover:not(:disabled) { border-color: var(--good); }
 #hud-start:disabled,
 #hud-upgrade:disabled,
 #hud-sell:disabled,
@@ -263,6 +265,7 @@ h4 {
   cursor: not-allowed;
 }
 #hud-start:focus-visible,
+#hud-auto:focus-visible,
 #hud-pause:focus-visible,
 #hud-speed:focus-visible,
 #hud-mute:focus-visible,
@@ -649,3 +652,7 @@ h4 {
 .audio-panel .audio-controls { justify-content: flex-start; }
 .audio-row { margin: 0.25rem 0; }
 .btn.small { padding: 0.25rem 0.8rem; font-size: var(--fs-sm); }
+
+/* ---- auto-wave toggle ---- */
+#hud-auto { white-space: nowrap; }
+#hud-auto[aria-pressed="true"] { background: #3b5a3a; border-color: #8be08b; color: #eaffea; font-weight: 600; }

@@ -45,7 +45,7 @@ export function describeSpecial(tower) {
  * Binds the DOM (top bar, tower list, selected panel, overlay) to world state.
  * Reads world, never mutates it; user intent goes out through callbacks.
  */
-export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade, onSell, onTargeting, onSpawnTest, onMute }) {
+export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade, onSell, onTargeting, onSpawnTest, onMute, onAutoWave }) {
   const el = {
     level: $('hud-level'), wave: $('hud-wave'), hp: $('hud-hp'), coins: $('hud-coins'),
     start: $('hud-start'), msg: $('hud-msg'), list: $('hud-tower-list'), spawnTest: $('hud-spawn-test'),
@@ -53,7 +53,7 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     selDamage: $('hud-damage'), selRate: $('hud-rate'), special: $('hud-special'), buffs: $('hud-buffs'),
     targeting: $('hud-targeting'), upgrade: $('hud-upgrade'), sell: $('hud-sell'),
     hpIcon: $('hud-hp-icon'), coinIcon: $('hud-coin-icon'),
-    pause: $('hud-pause'), mute: $('hud-mute'), speed: $('hud-speed'), speedIcon: $('hud-speed-icon'), speedLabel: $('hud-speed-label'), pauseIcon: $('hud-pause-icon'), medal: $('hud-medal'), brief: $('hud-brief'), unlock: $('hud-unlock'),
+    pause: $('hud-pause'), auto: $('hud-auto'), mute: $('hud-mute'), speed: $('hud-speed'), speedIcon: $('hud-speed-icon'), speedLabel: $('hud-speed-label'), pauseIcon: $('hud-pause-icon'), medal: $('hud-medal'), brief: $('hud-brief'), unlock: $('hud-unlock'),
     mission: $('hud-mission'), missionToggle: $('hud-mission-toggle'), missionBody: $('hud-mission-body'), contract: $('hud-contract'),
     edge: $('fx-edge'), banner: $('fx-banner'), coinsChip: $('hud-coins-chip'), hpChip: $('hud-hp-chip'),
     preview: $('hud-preview'), previewHead: $('hud-preview-head'), previewNow: $('hud-preview-now'), previewThen: $('hud-preview-then'),
@@ -79,6 +79,7 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
   el.start.addEventListener('click', () => onStart());
   el.pause.addEventListener('click', () => onPause?.());
   el.mute.addEventListener('click', () => onMute?.());
+  el.auto.addEventListener('click', () => onAutoWave?.());
   el.speed.addEventListener('click', () => onSpeed?.());
   el.upgrade.addEventListener('click', () => onUpgrade());
   el.sell.addEventListener('click', () => onSell());
@@ -469,6 +470,12 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     }
   }
 
+  /** Reflect the auto-wave state on the top-bar toggle. */
+  function setAutoWave(on) {
+    el.auto.setAttribute('aria-pressed', on ? 'true' : 'false');
+    el.auto.textContent = on ? 'Auto: On' : 'Auto: Off';
+  }
+
   /** Reflect the mute state on the top-bar speaker button. */
   function setMuted(muted) {
     el.mute.setAttribute('aria-pressed', muted ? 'true' : 'false');
@@ -476,5 +483,5 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     el.mute.title = muted ? 'Unmute (M)' : 'Mute (M)';
   }
 
-  return { buildTowerList, buildBrief, update, flash, onEvents, banner, setMuted };
+  return { buildTowerList, buildBrief, update, flash, onEvents, banner, setMuted, setAutoWave };
 }

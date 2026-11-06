@@ -13,19 +13,19 @@ export const MAX_LEVEL = levels.length;
  * @property {string} [difficulty]          'recruit'|'regular'|'veteran' (missing in old saves: regular)
  * @property {Record<string,true>} [contracts]       levels whose optional contract was completed (missing in old saves: none)
  * @property {Record<string,string>} [medalDifficulty]  difficulty each best medal was earned on
- * @property {{music:number,sfx:number,muted:boolean}} [settings]  audio settings (missing in old saves: DEFAULT_SETTINGS)
+ * @property {{music:number,sfx:number,muted:boolean,autoWave:boolean}} [settings]  audio + auto-wave settings (missing in old saves: DEFAULT_SETTINGS)
  * @property {{playTime:number, towers:Record<string,{damage:number,kills:number,spent:number}>}} stats
  */
 
 /** Audio defaults: volumes 0..1 and the mute flag. */
-export const DEFAULT_SETTINGS = Object.freeze({ music: 0.6, sfx: 0.8, muted: false });
+export const DEFAULT_SETTINGS = Object.freeze({ music: 0.6, sfx: 0.8, muted: false, autoWave: false });
 
 const unit = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : d);
 
 /** Validate untrusted settings: missing or bad fields fall back to the defaults, volumes clamp to 0..1. */
 export function normalizeSettings(raw) {
   const r = raw && typeof raw === 'object' ? raw : {};
-  return { music: unit(r.music, DEFAULT_SETTINGS.music), sfx: unit(r.sfx, DEFAULT_SETTINGS.sfx), muted: r.muted === true };
+  return { music: unit(r.music, DEFAULT_SETTINGS.music), sfx: unit(r.sfx, DEFAULT_SETTINGS.sfx), muted: r.muted === true, autoWave: r.autoWave === true };
 }
 
 export function freshSave() {

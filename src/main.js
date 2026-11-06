@@ -99,6 +99,14 @@ async function boot() {
     setSpeed(n) { if (n === 1 || n === 2 || n === 3) app.speed = n; },
     cycleSpeed() { app.speed = app.speed >= 3 ? 1 : app.speed + 1; },
     screen: () => sm.current,
+    toggleAutoWave() {
+      const on = !save.settings.autoWave;
+      save.settings.autoWave = on;
+      if (app.world) app.world.autoWave = on;
+      writeSave(save);
+      hud.setAutoWave(on);
+      hud.flash(on ? 'Auto-wave on: waves start as soon as the last one is cleared' : 'Auto-wave off', 1600);
+    },
     toggleMute() {
       const muted = audio.toggleMute();
       writeSave(save);
@@ -138,6 +146,7 @@ async function boot() {
       } else if (a.type === 'speed') app.setSpeed(a.value);
       else if (a.type === 'spawnTest') app.spawnTest?.();
       else if (a.type === 'mute') app.toggleMute();
+      else if (a.type === 'autoWave') app.toggleAutoWave();
     },
     spawnTest: sandbox ? () => spawnTestWave(app.world) : null,
     clickTile(tx, ty, keepArmed) {
@@ -167,13 +176,16 @@ async function boot() {
     onTargeting: (m) => app.setTargeting(m),
     onSpawnTest: () => app.spawnTest?.(),
     onMute: () => app.toggleMute(),
+    onAutoWave: () => app.toggleAutoWave(),
   });
+  hud.setAutoWave(save.settings.autoWave);
   audio.onChange((s) => hud.setMuted(s.muted));
 
   function reset(id = levelId) {
     levelId = id;
     const seed = (Date.now() ^ (Math.random() * 0xffffffff)) >>> 0;
-    app.world = sandbox ? createSandboxWorld(seed) : createWorld(levelId, { seed, difficulty: save.difficulty });
+    app.world = sandbox ? createSandboxWorld(seed) : createWorld(levelId, { seed, difficulty: save.difficulty, autoWave: save.settings.autoWave });
+    app.world.autoWave = save.settings.autoWave;
     app.armed = null;
     app.selectedId = null;
     hud.buildTowerList(app.world, { sandbox });

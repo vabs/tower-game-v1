@@ -61,3 +61,10 @@ test('M toggles mute on every screen, but not with modifiers', () => {
   expect(routeKey({ key: 'm', metaKey: true }, play)).toBeNull();
   expect(CONTROLS.some(([k]) => k === 'M')).toBe(true);
 });
+
+test('A toggles auto-wave while playing only', () => {
+  expect(routeKey({ key: 'a' }, { screen: 'playing' })).toEqual({ type: 'autoWave' });
+  expect(routeKey({ key: 'A' }, { screen: 'playing' })).toEqual({ type: 'autoWave' });
+  expect(routeKey({ key: 'a' }, { screen: 'paused' })).toBeNull();
+  expect(CONTROLS.some(([k]) => k === 'A')).toBe(true);
+});

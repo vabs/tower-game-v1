@@ -7,6 +7,7 @@ export const CONTROLS = [
   ['Click a placed tower', 'Select it'],
   ['Right click', 'Cancel placement'],
   ['Space', 'Start the next wave / call it early'],
+  ['A', 'Auto-wave on / off (start each wave as soon as the last is cleared)'],
   ['U', 'Upgrade selected tower'],
   ['S or Delete', 'Sell selected (press twice within 1.5 s during a wave)'],
   ['T', 'Cycle targeting of selected tower'],
@@ -30,6 +31,7 @@ export function routeKey(e, ctx) {
   if (ctx.screen !== 'playing') return null;
   switch (k) {
     case ' ': case 'Spacebar': return { type: 'startWave' };
+    case 'a': case 'A': return { type: 'autoWave' };
     case 'u': case 'U': return { type: 'upgrade' };
     case 's': case 'S': case 'Delete': return { type: 'sell' };
     case 't': case 'T': return { type: 'cycleTarget' };
