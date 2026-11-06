@@ -3,7 +3,7 @@ import { positionAt } from '../core/path.js';
 import { enemies as enemyDefs } from '../data/enemies.js';
 import { speedMultiplier } from './effects.js';
 import { bosses as bossDefs } from '../data/bosses.js';
-import { levelScaling } from '../data/waves.js';
+import { levelScaling, scaledHp } from '../data/waves.js';
 import { enemyStat } from './stats.js';
 
 /** speed 1.0 == 1.5 tiles per second (decision 2). */
@@ -46,11 +46,12 @@ export function spawnEnemy(world, defId, pathIndex) {
   const length = air
     ? Math.hypot(path[1].x - path[0].x, path[1].y - path[0].y)
     : world.map.pathLengths[pathIndex];
+  const hp = scaledHp(def, world.level);
   const enemy = {
     id: world.nextId++,
     defId,
-    hp: def.hp * scaling.hp * (def.boss ? scaling.boss : 1),
-    maxHp: def.hp * scaling.hp * (def.boss ? scaling.boss : 1),
+    hp,
+    maxHp: hp,
     speed: def.speed * scaling.speed,
     coins: def.coins,
     leak: def.leak ?? leakDamage(def.hp),

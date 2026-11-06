@@ -56,6 +56,8 @@ try {
   check('level 1 started from select', (await page.evaluate(() => window.__td.world.level)) === 1);
   check('mission brief shown', ((await page.locator('#hud-brief').textContent()) || '').includes('No leaks for Gold'));
   check('tech unlock tracker shown', ((await page.locator('#hud-unlock').textContent()) || '').includes('Level 2'));
+  check('wave preview visible in build phase', await page.locator('#hud-preview').isVisible() && ((await page.locator('#hud-preview-now').textContent()) || '').includes('6x Grunt'), (await page.locator('#hud-preview').textContent()) || '');
+  check('wave preview has a then: line', ((await page.locator('#hud-preview-then').textContent()) || '').startsWith('then:'));
   await page.screenshot({ path: `${outDir}/01-loaded.png` });
 
   check('tower buttons rendered', (await buttons.count()) >= 1, `count=${await buttons.count()}`);

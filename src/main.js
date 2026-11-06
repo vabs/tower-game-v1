@@ -40,6 +40,7 @@ async function boot() {
     world: null,
     armed: null,
     speed: 1,
+    sandbox,
     selectedId: null,
     hover: null,
     arm(id) {

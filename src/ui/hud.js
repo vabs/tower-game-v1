@@ -5,6 +5,7 @@ import { enemies } from '../data/enemies.js';
 import { bosses, BOSS_SEQUENCE } from '../data/bosses.js';
 import { INTRODUCED_AT } from '../data/waves.js';
 import { medalFor } from '../core/medals.js';
+import { summarizeWave } from './wavePreview.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -72,12 +73,14 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     selDamage: $('hud-damage'), selRate: $('hud-rate'), special: $('hud-special'),
     targeting: $('hud-targeting'), upgrade: $('hud-upgrade'), sell: $('hud-sell'),
     pause: $('hud-pause'), speed: $('hud-speed'), speedIcon: $('hud-speed-icon'), pauseIcon: $('hud-pause-icon'), medal: $('hud-medal'), brief: $('hud-brief'), unlock: $('hud-unlock'),
+    preview: $('hud-preview'), previewHead: $('hud-preview-head'), previewNow: $('hud-preview-now'), previewThen: $('hud-preview-then'),
   };
   const setSrc = (img, key) => { const sp = sprites[key]; if (sp && img.getAttribute('src') !== sp.src) img.src = sp.src; };
   setSrc(el.pauseIcon, 'ui/pause');
   let buttons = [];
   let msgTimer = null;
   let specialKey = '';
+  let previewKey = '';
 
   el.start.addEventListener('click', () => onStart());
   el.pause.addEventListener('click', () => onPause?.());
@@ -210,6 +213,59 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
     el.sell.disabled = over;
   }
 
+  /** Next-wave card: wave N groups (icon x count, air chevron, boss HP) and a tiny "then:" line for N+1. */
+  function updatePreview(world, sandbox) {
+    const over = world.phase === 'won' || world.phase === 'lost';
+    const key = sandbox || over ? 'off' : `${world.level}:${world.waveIndex}:${world.phase === 'wave' ? 'live' : 'next'}:${world.difficulty?.id ?? ''}`;
+    if (key === previewKey) return;
+    previewKey = key;
+    el.preview.hidden = key === 'off';
+    if (key === 'off') return;
+    const hpMult = world.difficulty?.hpMult ?? 1;
+    const total = world.waves.length;
+    const cur = summarizeWave(world.waves[world.waveIndex], world.level, { hpMult });
+    const nxt = summarizeWave(world.waves[world.waveIndex + 1], world.level, { hpMult });
+    const live = world.phase === 'wave';
+    el.previewHead.textContent = `${live ? 'Wave' : 'Next wave'} ${world.waveIndex + 1}/${total}${live ? ' (running)' : ''}`;
+    el.previewNow.textContent = '';
+    el.previewThen.textContent = '';
+    if (!cur) return;
+    if (cur.supply) {
+      const line = row(spriteImg('ui/crate'), `Supply drop `, spriteImg('ui/coin'), `+${cur.coins}`);
+      line.className = 'pv-row pv-supply';
+      el.previewNow.append(line);
+    }
+    for (const g of cur.groups) {
+      const line = row(spriteImg(g.sprite), `${g.count}x ${g.name}`);
+      line.className = 'pv-row' + (g.boss ? ' pv-boss' : '');
+      line.title = `${g.name}: ${g.hp} HP each${g.air ? ', flies (anti-air only)' : ''}`;
+      if (g.air) {
+        const chev = spriteImg('ui/air_chevron');
+        chev.className = 'pv-air';
+        chev.title = 'Air unit';
+        line.append(chev);
+      }
+      const hp = document.createElement('span');
+      hp.className = 'pv-hp';
+      hp.textContent = `${g.hp}hp`;
+      line.append(hp);
+      el.previewNow.append(line);
+    }
+    if (nxt) {
+      const then = row('then: ');
+      if (nxt.supply) then.append(spriteImg('ui/crate'), spriteImg('ui/coin'), `+${nxt.coins}`);
+      for (const g of nxt.groups) {
+        const part = document.createElement('span');
+        part.className = 'pv-mini' + (g.boss ? ' pv-boss' : '');
+        part.title = g.name;
+        part.append(spriteImg(g.sprite), `${g.count}`);
+        if (g.air) part.append(' ^');
+        then.append(part);
+      }
+      el.previewThen.append(then);
+    }
+  }
+
   function update(world, app) {
     const total = world.waves.length;
     el.level.textContent = world.level;
@@ -232,6 +288,8 @@ export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade
 
     const tower = app.selectedId != null ? world.towers.find((t) => t.id === app.selectedId) : null;
     updateSelected(world, tower);
+
+    updatePreview(world, !!app.sandbox);
 
     el.brief.classList.toggle('fresh', world.waveIndex === 0 && world.phase === 'build');
   }

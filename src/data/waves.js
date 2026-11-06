@@ -41,6 +41,12 @@ export function levelScaling(level) {
   return { hp: (1 + 0.03 * (level - 1)) * (LEVEL_TUNE[level - 1] ?? 1), speed: 1 + 0.01 * Math.floor(level / 10), boss: BOSS_TUNE[level - 1] ?? 1 };
 }
 
+/** HP of one spawned enemy: base HP x level scaling (x boss tune for bosses) x difficulty multiplier. */
+export function scaledHp(def, level, hpMult = 1) {
+  const sc = levelScaling(level);
+  return def.hp * sc.hp * (def.boss ? sc.boss : 1) * hpMult;
+}
+
 /** Enemy ids available at `level`, ordered by introduction. */
 export function rosterForLevel(level) {
   return enemies
