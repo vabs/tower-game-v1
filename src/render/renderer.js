@@ -376,7 +376,16 @@ export function createRenderer(canvas, sprites) {
     const oy = cy - half;
     if (st.slow) { ctx.globalAlpha = 0.65; sprite('fx/slow_overlay', ox, oy, px, px); ctx.globalAlpha = 1; }
     if (st.burn) { ctx.globalAlpha = 0.5 + 0.3 * Math.sin(tNow * 18); sprite('fx/burn_overlay', ox, oy, px, px); ctx.globalAlpha = 1; }
-    if (st.stun && Math.floor(tNow * 14) % 2 === 0) sprite('fx/hit_spark', ex - 12, oy - 14, 24, 24);
+    if (st.stun) {
+      // EMP: pulsing electric-blue tint plus a flickering spark
+      ctx.globalAlpha = 0.18 + 0.12 * Math.sin(tNow * 30);
+      ctx.fillStyle = '#7fd0ff';
+      ctx.beginPath();
+      ctx.ellipse(ex, cy, half * 0.62, half * 0.55, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      if (Math.floor(tNow * 14) % 2 === 0) sprite('fx/hit_spark', ex - 12, oy - 14, 24, 24);
+    }
     if (e.hp < e.maxHp || e.boss) {
       const w = e.boss ? 64 : 32;
       const h = e.boss ? 6 : 4;
