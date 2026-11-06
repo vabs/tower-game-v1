@@ -36,6 +36,7 @@ function h(spec, attrs, ...kids) {
 export function createScreens(sprites, on) {
   const root = document.getElementById('screens');
   let current = null;
+  let audioSyncs = [];
 
   const icon = (key, cls = 'px-icon', alt = '') => {
     const img = h('img.' + cls, { alt });
@@ -144,6 +145,40 @@ export function createScreens(sprites, on) {
     return compact ? box : h('div.diff-wrap', box, blurb);
   }
 
+  /**
+   * Music / SFX sliders plus a mute button. Changes go out through on.onSetAudio(patch, commit): live while
+   * dragging (commit false), saved on release (commit true). `settings` is the save's live settings object.
+   */
+  function audioControls(settings, { title = true } = {}) {
+    const slider = (key, label) => {
+      const out = h('span.vol-val', { 'data-vol': key, text: `${Math.round(settings[key] * 100)}%` });
+      const input = h('input', { type: 'range', min: 0, max: 100, step: 5, value: Math.round(settings[key] * 100), id: `vol-${key}`, 'aria-label': `${label} volume` });
+      input.addEventListener('input', () => {
+        out.textContent = `${input.value}%`;
+        on.onSetAudio?.({ [key]: Number(input.value) / 100 }, false);
+      });
+      input.addEventListener('change', () => on.onSetAudio?.({ [key]: Number(input.value) / 100 }, true));
+      return h('label.vol', h('span', { text: label }), input, out);
+    };
+    const mute = h('button.btn.small', { type: 'button', id: 'btn-mute-audio', 'aria-pressed': 'false', onclick: () => on.onToggleMute?.() });
+    const sync = () => {
+      mute.textContent = settings.muted ? 'Unmute' : 'Mute';
+      mute.setAttribute('aria-pressed', settings.muted ? 'true' : 'false');
+    };
+    sync();
+    sync.el = mute;
+    audioSyncs.push(sync);
+    return h('div.audio-controls', { 'data-testid': 'audio-controls' },
+      title ? h('span.audio-title', { text: 'Audio' }) : null,
+      slider('music', 'Music'), slider('sfx', 'Effects'), mute);
+  }
+
+  /** Re-read the mute state into any audio controls on screen (after the M key, say). */
+  const refreshAudio = () => {
+    audioSyncs = audioSyncs.filter((f) => f.el.isConnected); // drop controls of screens that are gone
+    audioSyncs.forEach((f) => f());
+  };
+
   // ---- Start ----
   function showStart(save) {
     const progress = hasProgress(save);
@@ -163,6 +198,7 @@ export function createScreens(sprites, on) {
       h('p.subtitle', { text: '50 missions. 30 towers. Hold the line.' }),
       progress ? h('p.contracts-total', { 'data-testid': 'contracts-total', text: `Contracts completed: ${summarizeCampaign(save).contracts} / ${levels.length}` }) : null,
       difficultyPicker(save),
+      h('div.audio-row', audioControls(save.settings)),
       h('div.menu',
         progress ? button(`Continue (Level ${save.unlockedLevel})`, () => on.onContinue(), { primary: true, id: 'btn-continue' }) : null,
         newBtn,
@@ -221,7 +257,7 @@ export function createScreens(sprites, on) {
   }
 
   // ---- Pause ----
-  function showPause(world) {
+  function showPause(world, save) {
     mount('paused', [
       h('h2', { text: 'Paused' }),
       h('p.muted', { text: `Level ${world.level}  Wave ${Math.min(world.waveIndex + 1, world.waves.length)}/${world.waves.length}  HP ${world.hp}/${world.maxHp}  Coins ${world.coins}` }),
@@ -229,6 +265,7 @@ export function createScreens(sprites, on) {
         button('Resume', () => on.onResume(), { primary: true, id: 'btn-resume', iconKey: 'ui/play' }),
         button('Restart', () => on.onRestart(), { id: 'btn-restart' }),
         button('Level Select', () => on.onLevelSelect(), { id: 'btn-levels' })),
+      h('section.an-panel.audio-panel', { 'data-panel': 'audio' }, h('h3', { text: 'Audio' }), audioControls(save.settings, { title: false })),
       h('section.an-panel.controls', { 'data-panel': 'controls' },
         h('h3', { text: 'Controls' }),
         h('div.controls-grid', ...CONTROLS.flatMap(([k, d]) => [h('kbd', { text: k }), h('span', { text: d })]))),
@@ -315,5 +352,5 @@ export function createScreens(sprites, on) {
 
   const stat = (label, value) => h('div.stat', h('b', { text: value }), h('span', { text: label }));
 
-  return { showStart, showLevelSelect, showPause, showLevelComplete, showGameOver, showGameEnd, hide, get current() { return current; } };
+  return { refreshAudio, showStart, showLevelSelect, showPause, showLevelComplete, showGameOver, showGameEnd, hide, get current() { return current; } };
 }

@@ -52,3 +52,12 @@ test('targeting cycle and tower cycling', () => {
   expect(nextTowerId([], null)).toBeNull();
   expect(CONTROLS.length).toBeGreaterThan(8);
 });
+
+test('M toggles mute on every screen, but not with modifiers', () => {
+  for (const screen of ['playing', 'paused', 'start', 'level-select', 'level-complete']) {
+    expect(routeKey({ key: 'm' }, { screen })).toEqual({ type: 'mute' });
+    expect(routeKey({ key: 'M' }, { screen })).toEqual({ type: 'mute' });
+  }
+  expect(routeKey({ key: 'm', metaKey: true }, play)).toBeNull();
+  expect(CONTROLS.some(([k]) => k === 'M')).toBe(true);
+});

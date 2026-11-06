@@ -31,7 +31,8 @@ export function attachInput(canvas, app) {
     // Held keys must not repeat actions (e.g. auto-repeat would confirm a two-press sell).
     if (e.repeat && e.key !== 'Tab') return;
     const tag = e.target?.tagName;
-    if (tag === 'SELECT' || tag === 'INPUT' || tag === 'TEXTAREA') return;
+    // Range sliders (audio) keep M / Esc working; other form fields swallow every key.
+    if (tag === 'SELECT' || tag === 'TEXTAREA' || (tag === 'INPUT' && e.target.type !== 'range')) return;
     const action = routeKey(e, { screen: app.screen?.() ?? 'playing', sandbox: !!app.spawnTest });
     if (!action) return;
     if (action.type !== 'escape' || e.key === 'Tab') e.preventDefault();

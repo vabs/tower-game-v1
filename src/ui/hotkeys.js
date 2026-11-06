@@ -12,6 +12,7 @@ export const CONTROLS = [
   ['T', 'Cycle targeting of selected tower'],
   ['Tab', 'Select next tower'],
   ['1 / 2 / 3', 'Game speed 1x / 2x / 3x'],
+  ['M', 'Mute / unmute all audio'],
   ['Esc', 'Cancel placement, otherwise pause / resume'],
 ];
 
@@ -25,6 +26,7 @@ export function routeKey(e, ctx) {
   if (e.ctrlKey || e.metaKey || e.altKey) return null;
   const k = e.key;
   if (k === 'Escape') return { type: 'escape' };
+  if (k === 'm' || k === 'M') return { type: 'mute' };
   if (ctx.screen !== 'playing') return null;
   switch (k) {
     case ' ': case 'Spacebar': return { type: 'startWave' };

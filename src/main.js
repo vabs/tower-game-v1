@@ -16,6 +16,7 @@ import { createStateMachine } from './game/state.js';
 import { loadSave, writeSave, clearSave, recordClear, isLevelUnlocked, MAX_LEVEL } from './core/save.js';
 import { medalFor, isBetterMedal } from './core/medals.js';
 import { getUnlocksForLevel } from './data/levels.js';
+import { createAudio } from './audio/index.js';
 import { contractFor, contractResult } from './sim/contracts.js';
 
 function levelFromUrl() {
@@ -48,6 +49,7 @@ async function boot() {
   let save = loadSave();
   let levelId = urlLevel ?? 1;
   const sm = createStateMachine(direct ? 'playing' : 'start');
+  const audio = createAudio(save.settings);
 
   const app = {
     world: null,
@@ -64,13 +66,13 @@ async function boot() {
     upgrade() {
       if (app.selectedId == null) return;
       const r = upgradeTower(app.world, app.selectedId);
-      if (!r.ok) hud.flash(REASON_TEXT[r.reason] ?? r.reason);
+      if (!r.ok) { audio.play('invalid'); hud.flash(REASON_TEXT[r.reason] ?? r.reason); }
     },
     sell() {
       if (app.selectedId == null) return;
       const r = sellTower(app.world, app.selectedId);
       if (r.ok) { app.selectedId = null; hud.flash(`Sold +${r.refund}`); }
-      else hud.flash(REASON_TEXT[r.reason] ?? r.reason);
+      else { audio.play('invalid'); hud.flash(REASON_TEXT[r.reason] ?? r.reason); }
     },
     setTargeting(mode) {
       if (app.selectedId != null) setTargeting(app.world, app.selectedId, mode);
@@ -87,7 +89,7 @@ async function boot() {
       if (sm.current !== 'playing') return;
       app.armed = null;
       sm.transition('paused');
-      screens.showPause(app.world);
+      screens.showPause(app.world, save);
     },
     resume() {
       if (sm.current !== 'paused') return;
@@ -97,9 +99,15 @@ async function boot() {
     setSpeed(n) { if (n === 1 || n === 2 || n === 3) app.speed = n; },
     cycleSpeed() { app.speed = app.speed >= 3 ? 1 : app.speed + 1; },
     screen: () => sm.current,
+    toggleMute() {
+      const muted = audio.toggleMute();
+      writeSave(save);
+      hud.flash(muted ? 'Audio muted' : 'Audio on', 1000);
+      screens.refreshAudio();
+    },
     startWave() {
       const r = startWave(app.world);
-      if (!r.ok) hud.flash(REASON_TEXT[r.reason] ?? r.reason);
+      if (!r.ok) { audio.play('invalid'); hud.flash(REASON_TEXT[r.reason] ?? r.reason); }
       else if (r.bonus > 0) hud.flash(`Early call bonus +${r.bonus}`);
     },
     pendingSell: null,
@@ -129,6 +137,7 @@ async function boot() {
         if (id != null) { app.armed = null; app.selectedId = id; }
       } else if (a.type === 'speed') app.setSpeed(a.value);
       else if (a.type === 'spawnTest') app.spawnTest?.();
+      else if (a.type === 'mute') app.toggleMute();
     },
     spawnTest: sandbox ? () => spawnTestWave(app.world) : null,
     clickTile(tx, ty, keepArmed) {
@@ -138,6 +147,7 @@ async function boot() {
         if (r.ok) {
           if (!keepArmed) app.armed = null;
         } else {
+          audio.play('invalid');
           hud.flash(REASON_TEXT[r.reason] ?? r.reason);
         }
         return;
@@ -156,7 +166,9 @@ async function boot() {
     onSell: () => app.sell(),
     onTargeting: (m) => app.setTargeting(m),
     onSpawnTest: () => app.spawnTest?.(),
+    onMute: () => app.toggleMute(),
   });
+  audio.onChange((s) => hud.setMuted(s.muted));
 
   function reset(id = levelId) {
     levelId = id;
@@ -166,7 +178,7 @@ async function boot() {
     app.selectedId = null;
     hud.buildTowerList(app.world, { sandbox });
     hud.buildBrief(app.world, { sandbox });
-    if (import.meta.env.DEV) window.__td = { world: app.world, app, sm, screens, renderer, get save() { return save; } };
+    if (import.meta.env.DEV) window.__td = { world: app.world, app, sm, screens, renderer, audio, get save() { return save; } };
   }
 
   // ---- flow ----
@@ -206,9 +218,10 @@ async function boot() {
   const screens = createScreens(sprites, {
     onContinue: () => startLevel(Math.min(save.unlockedLevel, MAX_LEVEL)),
     onNewCampaign: () => {
-      const difficulty = save.difficulty; // keep the picker's choice across the reset
+      const { difficulty, settings } = save; // difficulty and audio choices survive the reset
       save = clearSave();
       save.difficulty = difficulty;
+      save.settings = settings; // same object: the audio layer holds a reference to it
       writeSave(save);
       startLevel(1);
     },
@@ -219,6 +232,11 @@ async function boot() {
     onRestart: () => startLevel(app.world.level),
     onNext: () => startLevel(Math.min(app.world.level + 1, MAX_LEVEL)),
     onToStart: () => goStart(),
+    onSetAudio: (patch, commit) => {
+      audio.set(patch);
+      if (commit) { writeSave(save); audio.play('ui'); }
+    },
+    onToggleMute: () => app.toggleMute(),
   });
 
   reset();
@@ -242,7 +260,7 @@ async function boot() {
     for (const ev of w.events) {
       if (ev.type === 'waveEnd') hud.flash(`Wave cleared  +${ev.stipend + (ev.hub || 0)} coins`);
     }
-    if (sm.current === 'playing') hud.onEvents(w.events, w, app.speed);
+    if (sm.current === 'playing') { hud.onEvents(w.events, w, app.speed); audio.consume(w.events, w); }
     if (!sandbox && sm.current === 'playing') {
       for (const ev of w.events) {
         if (ev.type !== 'levelEnd') continue;
@@ -253,6 +271,7 @@ async function boot() {
     }
     renderer.consume(w.events);
     w.events.length = 0;
+    audio.update(sm.current, w);
 
     let ghost = null;
     if (app.armed && app.hover) {
