@@ -63,14 +63,14 @@ export function describeSpecial(tower) {
  * Binds the DOM (top bar, tower list, selected panel, overlay) to world state.
  * Reads world, never mutates it; user intent goes out through callbacks.
  */
-export function createHud(sprites, { onArm, onStart, onPause, onUpgrade, onSell, onTargeting, onSpawnTest }) {
+export function createHud(sprites, { onArm, onStart, onPause, onSpeed, onUpgrade, onSell, onTargeting, onSpawnTest }) {
   const el = {
     level: $('hud-level'), wave: $('hud-wave'), hp: $('hud-hp'), coins: $('hud-coins'),
     start: $('hud-start'), msg: $('hud-msg'), list: $('hud-tower-list'), spawnTest: $('hud-spawn-test'),
     selName: $('hud-selected'), selRange: $('hud-range'), selDps: $('hud-dps'), selLevel: $('hud-sel-level'),
     selDamage: $('hud-damage'), selRate: $('hud-rate'), special: $('hud-special'),
     targeting: $('hud-targeting'), upgrade: $('hud-upgrade'), sell: $('hud-sell'),
-    pause: $('hud-pause'), brief: $('hud-brief'), unlock: $('hud-unlock'),
+    pause: $('hud-pause'), speed: $('hud-speed'), brief: $('hud-brief'), unlock: $('hud-unlock'),
   };
   let buttons = [];
   let msgTimer = null;
@@ -78,6 +78,7 @@ export function createHud(sprites, { onArm, onStart, onPause, onUpgrade, onSell,
 
   el.start.addEventListener('click', () => onStart());
   el.pause.addEventListener('click', () => onPause?.());
+  el.speed.addEventListener('click', () => onSpeed?.());
   el.upgrade.addEventListener('click', () => onUpgrade());
   el.sell.addEventListener('click', () => onSell());
   el.targeting.addEventListener('change', () => onTargeting(el.targeting.value));
@@ -213,6 +214,7 @@ export function createHud(sprites, { onArm, onStart, onPause, onUpgrade, onSell,
     el.hp.textContent = `${world.hp}/${world.maxHp}`;
     el.coins.textContent = world.coins;
     updateStart(world);
+    setText(el.speed, `${app.speed ?? 1}x`);
 
     for (const b of buttons) {
       b.el.disabled = world.coins < b.cost;

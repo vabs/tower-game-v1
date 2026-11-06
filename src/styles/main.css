@@ -187,7 +187,7 @@ body {
 .topbar { flex-wrap: wrap; }
 
 /* ---- pause button, mission brief, tech-unlock tracker ---- */
-#hud-pause {
+#hud-pause, #hud-speed {
   background: #2b332f;
   color: #e6e2d3;
   border: 1px solid #3a403e;

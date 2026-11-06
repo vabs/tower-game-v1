@@ -23,3 +23,9 @@ test('clock returns 0 for dt smaller than a step', () => {
   assert.equal(clock.advance(0.05), 0);
   assert.equal(clock.advance(0.05), 1);
 });
+
+test('clock scales by game speed and caps steps per frame', () => {
+  const clock = createClock(1 / 60);
+  assert.equal(clock.advance(1 / 60, 3), 3);
+  assert.equal(clock.advance(1, 3), 30);
+});

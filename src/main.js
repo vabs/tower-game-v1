@@ -39,6 +39,7 @@ async function boot() {
   const app = {
     world: null,
     armed: null,
+    speed: 1,
     selectedId: null,
     hover: null,
     arm(id) {
@@ -79,6 +80,8 @@ async function boot() {
       sm.transition('playing');
       screens.hide();
     },
+    setSpeed(n) { if (n === 1 || n === 2 || n === 3) app.speed = n; },
+    cycleSpeed() { app.speed = app.speed >= 3 ? 1 : app.speed + 1; },
     spawnTest: sandbox ? () => spawnTestWave(app.world) : null,
     clickTile(tx, ty, keepArmed) {
       const w = app.world;
@@ -104,6 +107,7 @@ async function boot() {
       else if (r.bonus > 0) hud.flash(`Early call bonus +${r.bonus}`);
     },
     onPause: () => app.pause(),
+    onSpeed: () => app.cycleSpeed(),
     onUpgrade: () => app.upgrade(),
     onSell: () => app.sell(),
     onTargeting: (m) => app.setTargeting(m),
@@ -169,13 +173,18 @@ async function boot() {
   if (sm.current === 'start') screens.showStart(save);
   attachInput(canvas, app);
 
+  // Auto-pause when the window loses focus or the tab is hidden during a level.
+  const autoPause = () => { if (sm.current === 'playing') app.pause(); };
+  window.addEventListener('blur', autoPause);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) autoPause(); });
+
   const clock = createClock(STEP);
   let last = performance.now();
   function loop(now) {
     const w = app.world;
     const dtReal = (now - last) / 1000;
     last = now;
-    const steps = sm.current === 'playing' ? clock.advance(dtReal) : 0;
+    const steps = sm.current === 'playing' ? clock.advance(dtReal, app.speed) : 0;
     for (let i = 0; i < steps; i++) step(w, STEP);
 
     for (const ev of w.events) {
@@ -201,7 +210,7 @@ async function boot() {
         valid: canPlaceTower(w, app.armed, tx, ty).ok,
       };
     }
-    renderer.draw(w, { selectedTowerId: app.selectedId, ghost });
+    renderer.draw(w, { selectedTowerId: app.selectedId, ghost, speed: sm.current === 'playing' ? app.speed : 1 });
     hud.update(w, app);
     requestAnimationFrame(loop);
   }

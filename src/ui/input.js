@@ -31,5 +31,6 @@ export function attachInput(canvas, app) {
     if (tag === 'SELECT' || tag === 'INPUT' || tag === 'TEXTAREA') return;
     if ((e.key === 'n' || e.key === 'N') && app.spawnTest) app.spawnTest();
     if (e.key === 'Escape') app.escape();
+    if (e.key === '1' || e.key === '2' || e.key === '3') app.setSpeed?.(Number(e.key));
   });
 }

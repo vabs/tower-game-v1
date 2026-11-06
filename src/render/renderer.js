@@ -228,6 +228,7 @@ export function createRenderer(canvas, sprites) {
   /** @type {{kind:string,age:number,dur:number,[k:string]:any}[]} */
   let fx = [];
   let lastT = null;
+  let animT = 0;
   const FX_CAP = 120;
 
   /** Turn sim events into effects. Call once per frame before the events are cleared. */
@@ -397,9 +398,11 @@ export function createRenderer(canvas, sprites) {
    */
   function draw(world, view = {}) {
     ctx.imageSmoothingEnabled = false;
-    const now = performance.now() / 1000;
-    const dt = lastT === null ? 0 : Math.min(0.1, now - lastT);
-    lastT = now;
+    const real = performance.now() / 1000;
+    const dt = (lastT === null ? 0 : Math.min(0.1, real - lastT)) * (view.speed ?? 1);
+    lastT = real;
+    animT += dt; // cosmetic clock: fx and marker/burn animation follow game speed
+    const now = animT;
     drawMapLayer(world.map);
     drawMarkers(world.map, now);
     for (const f of world.fields ?? []) drawField(f);
