@@ -257,7 +257,7 @@ export function createRenderer(canvas, sprites) {
       if (ev.type === 'hit') fx.push({ kind: 'spark', x: ev.x, y: ev.y, age: 0, dur: 0.16 });
       else if (ev.type === 'splash') fx.push({ kind: 'explosion', x: ev.x, y: ev.y, r: ev.radius, age: 0, dur: 0.38 });
       else if (ev.type === 'chain') fx.push({ kind: 'chain', points: ev.points, age: 0, dur: 0.2 });
-      else if (ev.type === 'beam') fx.push({ kind: 'beam', ...ev, age: 0, dur: 0.12 });
+      else if (ev.type === 'beam') fx.push({ ...ev, beam: ev.kind, kind: 'beam', age: 0, dur: 0.12 });
     }
   }
 

@@ -28,6 +28,8 @@ export function attachInput(canvas, app) {
     app.arm(null);
   });
   window.addEventListener('keydown', (e) => {
+    // Held keys must not repeat actions (e.g. auto-repeat would confirm a two-press sell).
+    if (e.repeat && e.key !== 'Tab') return;
     const tag = e.target?.tagName;
     if (tag === 'SELECT' || tag === 'INPUT' || tag === 'TEXTAREA') return;
     const action = routeKey(e, { screen: app.screen?.() ?? 'playing', sandbox: !!app.spawnTest });

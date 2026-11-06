@@ -194,7 +194,13 @@ async function boot() {
 
   const screens = createScreens(sprites, {
     onContinue: () => startLevel(Math.min(save.unlockedLevel, MAX_LEVEL)),
-    onNewCampaign: () => { save = clearSave(); writeSave(save); startLevel(1); },
+    onNewCampaign: () => {
+      const difficulty = save.difficulty; // keep the picker's choice across the reset
+      save = clearSave();
+      save.difficulty = difficulty;
+      writeSave(save);
+      startLevel(1);
+    },
     onLevelSelect: () => goLevelSelect(),
     onStartLevel: (id) => { if (isLevelUnlocked(save, id)) startLevel(id); },
     onSetDifficulty: (id) => { save.difficulty = id; writeSave(save); },

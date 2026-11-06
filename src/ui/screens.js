@@ -63,11 +63,16 @@ export function createScreens(sprites, on) {
     }
     root.append(h('div.screen-box.screen-' + name, null, ...box));
     root.hidden = false;
+    // Game controls under an overlay must not be focusable or clickable.
+    const app = document.getElementById('app');
+    if (app) app.inert = true;
     current = name;
     root.querySelector('.btn.primary')?.focus({ preventScroll: true });
   }
 
   function hide() {
+    const app = document.getElementById('app');
+    if (app) app.inert = false;
     root.hidden = true;
     root.textContent = '';
     delete root.dataset.screen;
