@@ -5,3 +5,5 @@ export function toWorld(tile, size) {
 export function toTile(world, size) {
   return { x: Math.floor(world.x / size), y: Math.floor(world.y / size) };
 }
+
+export const TILE_SIZE = 48;
