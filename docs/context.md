@@ -1,6 +1,6 @@
 # Project Context
 
-Updated: 2026-11-06
+Updated: 2026-11-09
 
 ## Overview
 A modern-military pixel-art tower defence game for desktop browsers: Canvas playfield, DOM panels, Vite build to a single `dist/index.html`. 50 levels, 30 towers (6 families, 5 upgrade levels each), 20 enemy types plus 4 boss variants, medals and a local save.
@@ -19,7 +19,7 @@ The simulation is pure and deterministic (fixed step 1/60 s, seeded RNG, no DOM,
 - `src/ui/` `hud` (top bar, tower list, selected panel, mission brief), `screens` (overlays), `input` (mouse, Esc, 1/2/3, N in sandbox), `analytics`.
 - `src/audio/` runtime-synthesized sound (app layer only; the sim never imports it): `engine` (lazy AudioContext on first gesture, music/sfx buses, compressor, mute/duck), `synth` (instruments), `music` (look-ahead scheduler, crossfade, stings), `tracks` (music as data, schema in its header), `trackSchema`, `notes` (parsers), `musicState` (game state -> track), `sfx` (event -> sound map and voices), `limiter` (voice limits), `index` (controller used by `main.js`). Sim `fire` events exist only for audio.
 - `src/game/state.js` screen state machine; `src/main.js` boot, game loop, speed, auto-pause.
-- `tools/` `smoke.mjs` (Playwright), `balance.js` + `balance-bot.js` (bot), `autotune.mjs`, `upgrade-costs.mjs`, sprite generators (Python).
+- `tools/` `smoke.mjs` (Playwright), `balance.js` + `balance-bot.js` (bot), `autotune.mjs`, `upgrade-costs.mjs`, sprite generators (Python). Tower sprites come from `generate_tower_assets.py`: isometric 3D scenes ray-cast to 24x24 pixel art, with the level shown by trim colour (L1 plain, L2 bronze, L3 silver, L4 gold, L5 violet with a glowing band) plus new modules and barrels. `generate_pixel_assets.py` no longer draws towers.
 - `tests/` vitest suites for sim, data, save, targeting, clock, upgrade-cost efficiency.
 
 ## Key rules
